@@ -1,4 +1,4 @@
-import { ComponentType, createElement, useState } from "react";
+import { ComponentRef, ComponentType, createElement, useRef, useState } from "react";
 import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { SvgProps } from "react-native-svg";
 
@@ -62,15 +62,37 @@ export const SwipeableItem = ({
   onSave,
 }: SwipeableItemProps) => {
   const [isShowingActions, setIsShowingActions] = useState(false);
+  const swipeableRef = useRef<ComponentRef<typeof Swipeable>>(null);
+
+  const handleActionPress = (action: (bankHoliday: BankHolidayStateEvent) => void) => {
+    swipeableRef.current?.close?.();
+    setIsShowingActions(false);
+    action(bankHoliday);
+  };
 
   return (
     <Swipeable
+      ref={swipeableRef}
       onSwipeableClose={() => setIsShowingActions(false)}
       onSwipeableOpen={() => setIsShowingActions(true)}
       renderRightActions={() => {
         return (
           <StyledActionButtons>
-            <StyledActionButton onPress={() => onEdit(bankHoliday)}>
+            <StyledActionButton
+              variant="success"
+              onPress={() => handleActionPress(onSave)}
+            >
+              <StyledActionContent>
+                <CalendarSvg
+                  fill="white"
+                  height={20}
+                  testID="calendar-icon"
+                  width={20}
+                />
+                <StyledActionButtonLabel>Save</StyledActionButtonLabel>
+              </StyledActionContent>
+            </StyledActionButton>
+            <StyledActionButton onPress={() => handleActionPress(onEdit)}>
               <StyledActionContent>
                 <EditSvg
                   fill="white"
@@ -83,7 +105,7 @@ export const SwipeableItem = ({
             </StyledActionButton>
             <StyledActionButton
               variant="error"
-              onPress={() => onDelete(bankHoliday)}
+              onPress={() => handleActionPress(onDelete)}
             >
               <StyledActionContent>
                 <DeleteSvg
@@ -93,20 +115,6 @@ export const SwipeableItem = ({
                   width={20}
                 />
                 <StyledActionButtonLabel>Delete</StyledActionButtonLabel>
-              </StyledActionContent>
-            </StyledActionButton>
-            <StyledActionButton
-              variant="success"
-              onPress={() => onSave(bankHoliday)}
-            >
-              <StyledActionContent>
-                <CalendarSvg
-                  fill="white"
-                  height={20}
-                  testID="calendar-icon"
-                  width={20}
-                />
-                <StyledActionButtonLabel>Save</StyledActionButtonLabel>
               </StyledActionContent>
             </StyledActionButton>
           </StyledActionButtons>
