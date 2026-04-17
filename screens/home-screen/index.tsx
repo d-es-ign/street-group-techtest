@@ -2,9 +2,10 @@ import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
 
 import { useBankHolidays } from "@/domains/bank-holidays/hooks/use-bank-holidays";
+import { useBankHolidaysStore } from "@/domains/bank-holidays/stores";
 import { BankHolidayStateEvent } from "@/domains/bank-holidays/types";
 
-import { SwipeableItem } from "../../domains/bank-holidays/components/swipable-item";
+import { SwipeableItem } from "../../domains/bank-holidays/components/swipeable-item";
 import {
   StyledBody,
   StyledContainer,
@@ -20,6 +21,9 @@ export default function HomeScreen() {
     isRefreshing,
     refreshBankHolidays,
   } = useBankHolidays();
+  const deleteBankHoliday = useBankHolidaysStore(
+    (state) => state.deleteBankHoliday,
+  );
   const shouldShowError = isError && bankHolidays.length === 0;
 
   const handleEdit = (bankHoliday: BankHolidayStateEvent) => {
@@ -27,7 +31,7 @@ export default function HomeScreen() {
   };
 
   const handleDelete = (bankHoliday: BankHolidayStateEvent) => {
-    // Handle delete action (e.g., show a confirmation dialog)
+    deleteBankHoliday(bankHoliday.id);
   };
 
   const handleSave = (bankHoliday: BankHolidayStateEvent) => {

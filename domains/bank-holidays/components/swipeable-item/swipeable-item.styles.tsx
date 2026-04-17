@@ -9,6 +9,13 @@ export const StyledListItem = styled.View`
   padding: ${({ theme }) => theme.spacing.medium}px;
   border-bottom-width: 1px;
   border-bottom-color: ${({ theme }) => theme.colors.textSecondary}33;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+export const StyledListItemContent = styled.View`
+  flex: 1;
 `;
 
 export const StyledActionButtons = styled.View`
@@ -17,7 +24,7 @@ export const StyledActionButtons = styled.View`
 
 export const StyledActionButton = styled.Pressable<StyledActionButtonProps>`
   width: 88px;
-  padding: ${({ theme }) => theme.spacing.small}px;
+  padding: ${({ theme }) => theme.spacing.xSmall}px;
   align-items: center;
   justify-content: center;
   background-color: ${({ theme, variant }) =>

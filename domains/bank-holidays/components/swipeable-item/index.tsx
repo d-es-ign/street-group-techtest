@@ -1,8 +1,12 @@
+import { ComponentType, createElement, useState } from "react";
 import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import { SvgProps } from "react-native-svg";
 
 import CalendarIcon from "@/assets/svg/calendar.svg";
+import ChevronRightIcon from "@/assets/svg/chevron-right.svg";
 import DeleteIcon from "@/assets/svg/delete.svg";
 import EditIcon from "@/assets/svg/edit.svg";
+import MenuIcon from "@/assets/svg/menu.svg";
 import { BankHolidayStateEvent } from "@/domains/bank-holidays/types";
 
 import {
@@ -11,9 +15,38 @@ import {
   StyledActionButtons,
   StyledActionContent,
   StyledListItem,
+  StyledListItemContent,
   StyledListItemDate,
   StyledListItemTitle,
 } from "./swipeable-item.styles";
+
+const SvgMockFallback = (props: SvgProps) => {
+  return createElement("SvgMock", props);
+};
+
+const getSvgComponent = (icon: unknown) => {
+  const resolvedIcon = icon as
+    | ComponentType<SvgProps>
+    | {
+        default?: ComponentType<SvgProps>;
+      };
+
+  if (typeof resolvedIcon === "function") {
+    return resolvedIcon;
+  }
+
+  if (typeof resolvedIcon.default === "function") {
+    return resolvedIcon.default;
+  }
+
+  return SvgMockFallback;
+};
+
+const CalendarSvg = getSvgComponent(CalendarIcon);
+const ChevronRightSvg = getSvgComponent(ChevronRightIcon);
+const DeleteSvg = getSvgComponent(DeleteIcon);
+const EditSvg = getSvgComponent(EditIcon);
+const MenuSvg = getSvgComponent(MenuIcon);
 
 interface SwipeableItemProps {
   bankHoliday: BankHolidayStateEvent;
@@ -28,14 +61,23 @@ export const SwipeableItem = ({
   onDelete,
   onSave,
 }: SwipeableItemProps) => {
+  const [isShowingActions, setIsShowingActions] = useState(false);
+
   return (
     <Swipeable
+      onSwipeableClose={() => setIsShowingActions(false)}
+      onSwipeableOpen={() => setIsShowingActions(true)}
       renderRightActions={() => {
         return (
           <StyledActionButtons>
             <StyledActionButton onPress={() => onEdit(bankHoliday)}>
               <StyledActionContent>
-                <EditIcon color="white" height={20} testID="edit-icon" width={20} />
+                <EditSvg
+                  fill="white"
+                  height={20}
+                  testID="edit-icon"
+                  width={20}
+                />
                 <StyledActionButtonLabel>Edit</StyledActionButtonLabel>
               </StyledActionContent>
             </StyledActionButton>
@@ -44,7 +86,12 @@ export const SwipeableItem = ({
               onPress={() => onDelete(bankHoliday)}
             >
               <StyledActionContent>
-                <DeleteIcon color="white" height={20} testID="delete-icon" width={20} />
+                <DeleteSvg
+                  fill="white"
+                  height={20}
+                  testID="delete-icon"
+                  width={20}
+                />
                 <StyledActionButtonLabel>Delete</StyledActionButtonLabel>
               </StyledActionContent>
             </StyledActionButton>
@@ -53,8 +100,8 @@ export const SwipeableItem = ({
               onPress={() => onSave(bankHoliday)}
             >
               <StyledActionContent>
-                <CalendarIcon
-                  color="white"
+                <CalendarSvg
+                  fill="white"
                   height={20}
                   testID="calendar-icon"
                   width={20}
@@ -67,8 +114,20 @@ export const SwipeableItem = ({
       }}
     >
       <StyledListItem>
-        <StyledListItemTitle>{bankHoliday.title}</StyledListItemTitle>
-        <StyledListItemDate>{bankHoliday.date}</StyledListItemDate>
+        <StyledListItemContent>
+          <StyledListItemTitle>{bankHoliday.title}</StyledListItemTitle>
+          <StyledListItemDate>{bankHoliday.date}</StyledListItemDate>
+        </StyledListItemContent>
+        {isShowingActions ? (
+          <ChevronRightSvg
+            fill="black"
+            height={24}
+            testID="chevron-right-icon"
+            width={24}
+          />
+        ) : (
+          <MenuSvg fill="black" height={24} testID="menu-icon" width={24} />
+        )}
       </StyledListItem>
     </Swipeable>
   );
