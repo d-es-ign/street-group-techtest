@@ -29,7 +29,7 @@ describe("GIVEN useBankHolidaysStore", () => {
 
     expect(useBankHolidaysStore.getState().bankHolidays).toEqual([
       {
-        id: 0,
+        id: "0",
         ...bankHolidays[0],
       },
     ]);
@@ -55,11 +55,11 @@ describe("GIVEN useBankHolidaysStore", () => {
 
     expect(useBankHolidaysStore.getState().bankHolidays).toEqual([
       {
-        id: 0,
+        id: "0",
         ...bankHolidays[0],
       },
       {
-        id: 1,
+        id: "1",
         ...bankHolidays[1],
       },
     ]);
@@ -69,14 +69,14 @@ describe("GIVEN useBankHolidaysStore", () => {
     useBankHolidaysStore.setState({
       bankHolidays: [
         {
-          id: 0,
+          id: "0",
           title: "New Year's Day",
           date: "2026-01-01",
           notes: "",
           bunting: true,
         },
         {
-          id: 1,
+          id: "1",
           title: "Early May bank holiday",
           date: "2026-05-04",
           notes: "",
@@ -86,7 +86,7 @@ describe("GIVEN useBankHolidaysStore", () => {
     });
 
     useBankHolidaysStore.getState().updateBankHoliday({
-      id: 1,
+      id: "1",
       title: "Updated bank holiday",
       date: "2026-05-05",
       notes: "Moved date",
@@ -95,14 +95,14 @@ describe("GIVEN useBankHolidaysStore", () => {
 
     expect(useBankHolidaysStore.getState().bankHolidays).toEqual([
       {
-        id: 0,
+        id: "0",
         title: "New Year's Day",
         date: "2026-01-01",
         notes: "",
         bunting: true,
       },
       {
-        id: 1,
+        id: "1",
         title: "Updated bank holiday",
         date: "2026-05-05",
         notes: "Moved date",
@@ -114,7 +114,7 @@ describe("GIVEN useBankHolidaysStore", () => {
   it("SHOULD leave bank holidays unchanged when updating an unknown id", () => {
     const existingBankHolidays = [
       {
-        id: 0,
+        id: "0",
         title: "New Year's Day",
         date: "2026-01-01",
         notes: "",
@@ -127,7 +127,7 @@ describe("GIVEN useBankHolidaysStore", () => {
     });
 
     useBankHolidaysStore.getState().updateBankHoliday({
-      id: 99,
+      id: "99",
       title: "Non-existent bank holiday",
       date: "2026-12-25",
       notes: "",

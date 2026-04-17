@@ -5,6 +5,8 @@ export const appTheme = {
     textPrimary: "#0f172a",
     textSecondary: "#475569",
     accent: "#2563eb",
+    error: "#dc2626",
+    success: "#16a34a",
   },
   spacing: {
     xSmall: 8,

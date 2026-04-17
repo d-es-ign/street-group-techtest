@@ -16,7 +16,7 @@ export const useBankHolidaysStore = create<BankHolidaysState>((set) => ({
   setBankHolidays: (bankHolidays) =>
     set({
       bankHolidays: bankHolidays.map((event, index) => ({
-        id: index,
+        id: index.toString(),
         ...event,
       })),
     }),

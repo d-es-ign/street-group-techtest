@@ -1,4 +1,5 @@
 import { fireEvent } from "@testing-library/react-native";
+import { router } from "expo-router";
 
 import { useBankHolidays } from "@/domains/bank-holidays/hooks/use-bank-holidays";
 import { render, screen } from "@/test-utils";
@@ -41,6 +42,36 @@ jest.mock("@shopify/flash-list", () => ({
   },
 }));
 
+jest.mock("expo-router", () => ({
+  router: {
+    push: jest.fn(),
+  },
+}));
+
+jest.mock("@/assets/svg/edit.svg", () => "SvgEditIcon");
+jest.mock("@/assets/svg/delete.svg", () => "SvgDeleteIcon");
+jest.mock("@/assets/svg/calendar.svg", () => "SvgCalendarIcon");
+
+jest.mock("react-native-gesture-handler/ReanimatedSwipeable", () => ({
+  __esModule: true,
+  default: ({
+    children,
+    renderRightActions,
+  }: {
+    children: React.JSX.Element;
+    renderRightActions?: () => React.JSX.Element;
+  }) => {
+    const React = jest.requireActual("react") as typeof import("react");
+
+    return React.createElement(
+      React.Fragment,
+      null,
+      children,
+      renderRightActions ? renderRightActions() : null,
+    );
+  },
+}));
+
 jest.mock("@/domains/bank-holidays/hooks/use-bank-holidays", () => ({
   useBankHolidays: jest.fn(),
 }));
@@ -56,6 +87,8 @@ const createBankHolidaysResult = (
     isLoading: false,
     isRefreshing: false,
     refreshBankHolidays: jest.fn(),
+    toggleBankHolidayBunting: jest.fn(),
+    toggleBankHolidayNotes: jest.fn(),
     ...overrides,
   } as ReturnType<typeof useBankHolidays>;
 };
@@ -92,7 +125,7 @@ describe("GIVEN HomeScreen", () => {
       createBankHolidaysResult({
         bankHolidays: [
           {
-            id: 0,
+            id: "0",
             title: "New Year's Day",
             date: "2026-01-01",
             notes: "",
@@ -116,7 +149,7 @@ describe("GIVEN HomeScreen", () => {
       createBankHolidaysResult({
         bankHolidays: [
           {
-            id: 0,
+            id: "0",
             title: "New Year's Day",
             date: "2026-01-01",
             notes: "",
@@ -130,6 +163,36 @@ describe("GIVEN HomeScreen", () => {
 
     expect(screen.getByText("New Year's Day")).toBeOnTheScreen();
     expect(screen.getByText("2026-01-01")).toBeOnTheScreen();
+    expect(screen.getByText("Edit")).toBeOnTheScreen();
+    expect(screen.getByText("Delete")).toBeOnTheScreen();
+    expect(screen.getByText("Save")).toBeOnTheScreen();
+    expect(screen.getByTestId("edit-icon")).toBeOnTheScreen();
+    expect(screen.getByTestId("delete-icon")).toBeOnTheScreen();
+    expect(screen.getByTestId("calendar-icon")).toBeOnTheScreen();
+  });
+
+  it("SHOULD trigger swipe actions", () => {
+    const push = jest.mocked(router.push);
+
+    mockedUseBankHolidays.mockReturnValue(
+      createBankHolidaysResult({
+        bankHolidays: [
+          {
+            id: "0",
+            title: "New Year's Day",
+            date: "2026-01-01",
+            notes: "",
+            bunting: true,
+          },
+        ],
+      }),
+    );
+
+    render(<HomeScreen />);
+
+    fireEvent.press(screen.getByText("Edit"));
+
+    expect(push).toHaveBeenCalledWith("/edit/0");
   });
 
   it("SHOULD refetch bank holidays when the list is pulled to refresh", () => {
@@ -139,7 +202,7 @@ describe("GIVEN HomeScreen", () => {
       createBankHolidaysResult({
         bankHolidays: [
           {
-            id: 0,
+            id: "0",
             title: "New Year's Day",
             date: "2026-01-01",
             notes: "",

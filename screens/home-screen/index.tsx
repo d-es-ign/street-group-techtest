@@ -1,15 +1,14 @@
 import { FlashList } from "@shopify/flash-list";
+import { router } from "expo-router";
 
 import { useBankHolidays } from "@/domains/bank-holidays/hooks/use-bank-holidays";
-import { BankHolidayEvent } from "@/domains/bank-holidays/types";
+import { BankHolidayStateEvent } from "@/domains/bank-holidays/types";
 
+import { SwipeableItem } from "../../domains/bank-holidays/components/swipable-item";
 import {
   StyledBody,
   StyledContainer,
   StyledListContent,
-  StyledListItem,
-  StyledListItemDate,
-  StyledListItemTitle,
   StyledTitle,
 } from "./home-screen.styles";
 
@@ -22,6 +21,18 @@ export default function HomeScreen() {
     refreshBankHolidays,
   } = useBankHolidays();
   const shouldShowError = isError && bankHolidays.length === 0;
+
+  const handleEdit = (bankHoliday: BankHolidayStateEvent) => {
+    router.push(`/edit/${bankHoliday.id}`);
+  };
+
+  const handleDelete = (bankHoliday: BankHolidayStateEvent) => {
+    // Handle delete action (e.g., show a confirmation dialog)
+  };
+
+  const handleSave = (bankHoliday: BankHolidayStateEvent) => {
+    // Add to the user's native calendar (e.g., using react-native-calendar-events)
+  };
 
   return (
     <StyledContainer>
@@ -36,17 +47,19 @@ export default function HomeScreen() {
       ) : null}
 
       {!isLoading && !shouldShowError ? (
-        <FlashList<BankHolidayEvent>
+        <FlashList<BankHolidayStateEvent>
           contentContainerStyle={StyledListContent}
           data={bankHolidays}
           keyExtractor={(item) => `${item.date}-${item.title}`}
           onRefresh={refreshBankHolidays}
           renderItem={({ item }) => {
             return (
-              <StyledListItem>
-                <StyledListItemTitle>{item.title}</StyledListItemTitle>
-                <StyledListItemDate>{item.date}</StyledListItemDate>
-              </StyledListItem>
+              <SwipeableItem
+                bankHoliday={item}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onSave={handleSave}
+              />
             );
           }}
           refreshing={isRefreshing}

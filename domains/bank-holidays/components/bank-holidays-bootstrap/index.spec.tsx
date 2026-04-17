@@ -50,7 +50,9 @@ describe("GIVEN BankHolidaysBootstrap", () => {
       }),
     });
 
-    globalThis.fetch = jest.fn().mockReturnValue(fetchResponse) as unknown as typeof fetch;
+    globalThis.fetch = jest
+      .fn()
+      .mockReturnValue(fetchResponse) as unknown as typeof fetch;
 
     render(<BankHolidaysBootstrap />);
 
@@ -61,7 +63,7 @@ describe("GIVEN BankHolidaysBootstrap", () => {
     await waitFor(() => {
       expect(useBankHolidaysStore.getState().bankHolidays).toEqual([
         {
-          id: 0,
+          id: "0",
           title: "St Andrew's Day",
           date: "2026-03-30",
           notes: "",
@@ -76,7 +78,7 @@ describe("GIVEN BankHolidaysBootstrap", () => {
       useBankHolidaysStore.setState({
         bankHolidays: [
           {
-            id: 0,
+            id: "0",
             title: "Early May bank holiday",
             date: "2026-05-04",
             notes: "",
