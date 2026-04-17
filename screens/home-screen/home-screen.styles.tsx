@@ -40,22 +40,6 @@ export const StyledListItem = styled.View`
   border-bottom-color: ${({ theme }) => theme.colors.background};
 `;
 
-export const StyledFieldLabel = styled.Text`
-  color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-`;
-
-export const StyledInput = styled.TextInput`
-  padding: ${({ theme }) => theme.spacing.small}px;
-  border-width: 1px;
-  border-color: ${({ theme }) => theme.colors.background};
-  border-radius: ${({ theme }) => theme.radius.medium}px;
-  color: ${({ theme }) => theme.colors.textPrimary};
-  font-size: 16px;
-`;
-
 export const StyledListItemTitle = styled.Text`
   color: ${({ theme }) => theme.colors.textPrimary};
   font-size: 18px;
