@@ -2,6 +2,7 @@ import { fireEvent } from "@testing-library/react-native";
 import { router } from "expo-router";
 
 import { useBankHolidays } from "@/domains/bank-holidays/hooks/use-bank-holidays";
+import { useBankHolidaysStore } from "@/domains/bank-holidays/stores";
 import { render, screen } from "@/test-utils";
 
 import HomeScreen from "./index";
@@ -48,10 +49,6 @@ jest.mock("expo-router", () => ({
   },
 }));
 
-jest.mock("@/assets/svg/edit.svg", () => "SvgEditIcon");
-jest.mock("@/assets/svg/delete.svg", () => "SvgDeleteIcon");
-jest.mock("@/assets/svg/calendar.svg", () => "SvgCalendarIcon");
-
 jest.mock("react-native-gesture-handler/ReanimatedSwipeable", () => ({
   __esModule: true,
   default: ({
@@ -76,7 +73,13 @@ jest.mock("@/domains/bank-holidays/hooks/use-bank-holidays", () => ({
   useBankHolidays: jest.fn(),
 }));
 
+jest.mock("@/domains/bank-holidays/stores", () => ({
+  useBankHolidaysStore: jest.fn(),
+}));
+
 const mockedUseBankHolidays = jest.mocked(useBankHolidays);
+const mockedUseBankHolidaysStore = jest.mocked(useBankHolidaysStore);
+const deleteBankHoliday = jest.fn();
 
 const createBankHolidaysResult = (
   overrides: Partial<ReturnType<typeof useBankHolidays>>,
@@ -94,6 +97,18 @@ const createBankHolidaysResult = (
 };
 
 describe("GIVEN HomeScreen", () => {
+  beforeEach(() => {
+    deleteBankHoliday.mockReset();
+    mockedUseBankHolidaysStore.mockImplementation((selector) =>
+      selector({
+        bankHolidays: [],
+        deleteBankHoliday,
+        setBankHolidays: jest.fn(),
+        updateBankHoliday: jest.fn(),
+      }),
+    );
+  });
+
   it("SHOULD render a loading state", () => {
     mockedUseBankHolidays.mockReturnValue(
       createBankHolidaysResult({ isLoading: true }),
@@ -169,6 +184,7 @@ describe("GIVEN HomeScreen", () => {
     expect(screen.getByTestId("edit-icon")).toBeOnTheScreen();
     expect(screen.getByTestId("delete-icon")).toBeOnTheScreen();
     expect(screen.getByTestId("calendar-icon")).toBeOnTheScreen();
+    expect(screen.getByTestId("menu-icon")).toBeOnTheScreen();
   });
 
   it("SHOULD trigger swipe actions", () => {
@@ -193,6 +209,28 @@ describe("GIVEN HomeScreen", () => {
     fireEvent.press(screen.getByText("Edit"));
 
     expect(push).toHaveBeenCalledWith("/edit/0");
+  });
+
+  it("SHOULD delete a bank holiday when delete is pressed", () => {
+    mockedUseBankHolidays.mockReturnValue(
+      createBankHolidaysResult({
+        bankHolidays: [
+          {
+            id: "0",
+            title: "New Year's Day",
+            date: "2026-01-01",
+            notes: "",
+            bunting: true,
+          },
+        ],
+      }),
+    );
+
+    render(<HomeScreen />);
+
+    fireEvent.press(screen.getByText("Delete"));
+
+    expect(deleteBankHoliday).toHaveBeenCalledWith("0");
   });
 
   it("SHOULD refetch bank holidays when the list is pulled to refresh", () => {

@@ -9,6 +9,7 @@ interface BankHolidaysState {
   bankHolidays: BankHolidayStateEvent[];
   setBankHolidays: (bankHolidays: BankHolidayEvent[]) => void;
   updateBankHoliday: (updatedEvent: BankHolidayStateEvent) => void;
+  deleteBankHoliday: (id: string) => void;
 }
 
 export const useBankHolidaysStore = create<BankHolidaysState>((set) => ({
@@ -25,5 +26,9 @@ export const useBankHolidaysStore = create<BankHolidaysState>((set) => ({
       bankHolidays: state.bankHolidays.map((event) =>
         event.id === updatedEvent.id ? updatedEvent : event,
       ),
+    })),
+  deleteBankHoliday: (id: string) =>
+    set((state) => ({
+      bankHolidays: state.bankHolidays.filter((event) => event.id !== id),
     })),
 }));

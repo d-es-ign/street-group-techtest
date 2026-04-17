@@ -138,4 +138,37 @@ describe("GIVEN useBankHolidaysStore", () => {
       existingBankHolidays,
     );
   });
+
+  it("SHOULD delete a bank holiday by id", () => {
+    useBankHolidaysStore.setState({
+      bankHolidays: [
+        {
+          id: "0",
+          title: "New Year's Day",
+          date: "2026-01-01",
+          notes: "",
+          bunting: true,
+        },
+        {
+          id: "1",
+          title: "Early May bank holiday",
+          date: "2026-05-04",
+          notes: "",
+          bunting: true,
+        },
+      ],
+    });
+
+    useBankHolidaysStore.getState().deleteBankHoliday("0");
+
+    expect(useBankHolidaysStore.getState().bankHolidays).toEqual([
+      {
+        id: "1",
+        title: "Early May bank holiday",
+        date: "2026-05-04",
+        notes: "",
+        bunting: true,
+      },
+    ]);
+  });
 });

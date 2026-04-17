@@ -8,6 +8,16 @@ export const useBankHolidays = () => {
   const setBankHolidays = useBankHolidaysStore((state) => state.setBankHolidays);
   const { data, isError, isLoading, isRefetching, refetch } = useBankHolidaysQuery();
 
+  const refreshBankHolidays = async () => {
+    const refreshedResult = await refetch();
+
+    if (refreshedResult.data) {
+      setBankHolidays(refreshedResult.data);
+    }
+
+    return refreshedResult;
+  };
+
   useEffect(() => {
     if (data) {
       setBankHolidays(data);
@@ -19,6 +29,6 @@ export const useBankHolidays = () => {
     isError,
     isLoading: isLoading && bankHolidays.length === 0,
     isRefreshing: isRefetching,
-    refreshBankHolidays: refetch,
+    refreshBankHolidays,
   };
 };
