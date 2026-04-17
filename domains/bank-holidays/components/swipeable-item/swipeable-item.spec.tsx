@@ -75,4 +75,24 @@ describe("GIVEN SwipeableItem", () => {
     expect(screen.getByTestId("chevron-right-icon")).toBeOnTheScreen();
     expect(screen.queryByTestId("menu-icon")).not.toBeOnTheScreen();
   });
+
+  it("SHOULD close the actions after tapping an action item", () => {
+    const onEdit = jest.fn();
+
+    render(
+      <SwipeableItem
+        bankHoliday={bankHoliday}
+        onDelete={jest.fn()}
+        onEdit={onEdit}
+        onSave={jest.fn()}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId("open-swipeable"));
+    fireEvent.press(screen.getByText("Edit"));
+
+    expect(onEdit).toHaveBeenCalledWith(bankHoliday);
+    expect(screen.getByTestId("menu-icon")).toBeOnTheScreen();
+    expect(screen.queryByTestId("chevron-right-icon")).not.toBeOnTheScreen();
+  });
 });
