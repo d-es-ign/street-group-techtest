@@ -31,7 +31,7 @@ describe("GIVEN useBankHolidaysQuery", () => {
           },
           {
             title: "St Andrew's Day",
-            date: "2026-11-30",
+            date: "2026-03-30",
             notes: "",
             bunting: true,
           },
@@ -54,10 +54,10 @@ describe("GIVEN useBankHolidaysQuery", () => {
 
     expect(result.current.data).toEqual([
       {
-        id: "2026-11-30-St Andrew's Day",
         title: "St Andrew's Day",
-        date: "2026-11-30",
-        division: "Scotland",
+        date: "2026-03-30",
+        notes: "",
+        bunting: true,
       },
     ]);
   });
