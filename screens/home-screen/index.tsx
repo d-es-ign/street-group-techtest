@@ -35,7 +35,7 @@ export default function HomeScreen() {
           <FlashList
             contentContainerStyle={StyledListContent}
             data={bankHolidayItems}
-            keyExtractor={(item) => item.title + item.date}
+            keyExtractor={(item) => `${item.date}-${item.title}`}
             renderItem={({ item }) => {
               return (
                 <StyledListItem>
