@@ -6,7 +6,7 @@ export interface BankHolidayEvent {
 }
 
 export interface BankHolidayStateEvent extends BankHolidayEvent {
-  id: number;
+  id: string;
 }
 
 export interface BankHolidayDivision {
