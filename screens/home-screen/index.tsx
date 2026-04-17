@@ -1,6 +1,6 @@
 import { FlashList } from "@shopify/flash-list";
 
-import { useBankHolidaysQuery } from "@/domains/bank-holidays/hooks/queries/use-bank-holidays-query";
+import { useBankHolidays } from "@/domains/bank-holidays/hooks/use-bank-holidays";
 import { BankHolidayEvent } from "@/domains/bank-holidays/types";
 
 import {
@@ -15,8 +15,9 @@ import {
 } from "./home-screen.styles";
 
 export default function HomeScreen() {
-  const { data, isError, isLoading } = useBankHolidaysQuery();
-  const bankHolidayItems: BankHolidayEvent[] = data ?? [];
+  const { bankHolidays, isError, isLoading, isRefreshing, refreshBankHolidays } =
+    useBankHolidays();
+  const shouldShowError = isError && bankHolidays.length === 0;
 
   return (
     <StyledContainer>
@@ -27,15 +28,16 @@ export default function HomeScreen() {
         <StyledBody>UK bank holidays from GOV.UK.</StyledBody>
 
         {isLoading ? <StyledBody>Loading bank holidays...</StyledBody> : null}
-        {isError ? (
+        {shouldShowError ? (
           <StyledBody>Could not load bank holidays.</StyledBody>
         ) : null}
 
-        {!isLoading && !isError ? (
-          <FlashList
+        {!isLoading && !shouldShowError ? (
+          <FlashList<BankHolidayEvent>
             contentContainerStyle={StyledListContent}
-            data={bankHolidayItems}
+            data={bankHolidays}
             keyExtractor={(item) => `${item.date}-${item.title}`}
+            onRefresh={refreshBankHolidays}
             renderItem={({ item }) => {
               return (
                 <StyledListItem>
@@ -44,6 +46,7 @@ export default function HomeScreen() {
                 </StyledListItem>
               );
             }}
+            refreshing={isRefreshing}
           />
         ) : null}
       </StyledCard>
