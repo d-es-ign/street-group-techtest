@@ -11,7 +11,7 @@ describe("GIVEN HomeScreen", () => {
     ).toBeOnTheScreen();
     expect(
       screen.getByText(
-        "Empty Expo Router starter for interview and tech test exercises.",
+        "Empty Expo + Expo Router project for Jasper van Es' tech test exercise.",
       ),
     ).toBeOnTheScreen();
   });
