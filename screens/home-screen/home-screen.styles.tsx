@@ -24,7 +24,6 @@ export const StyledListContent = {
   marginTop: 24,
   flex: 1,
   borderTopWidth: 1,
-  borderTopStyle: "solid",
   borderTopColor: "#00000033",
 };
 
