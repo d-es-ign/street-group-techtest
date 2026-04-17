@@ -1,6 +1,7 @@
 import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
-import { Alert } from "react-native";
+import { useState } from "react";
+import { Alert, Linking } from "react-native";
 import RNCalendarEvents from "react-native-calendar-events";
 
 import { SwipeableItem } from "@/domains/bank-holidays/components/swipeable-item";
@@ -27,6 +28,8 @@ export default function HomeScreen() {
   const deleteBankHoliday = useBankHolidaysStore(
     (state) => state.deleteBankHoliday,
   );
+  const [hasDeniedCalendarPermission, setHasDeniedCalendarPermission] =
+    useState(false);
   const shouldShowError = isError && bankHolidays.length === 0;
 
   const handleEdit = (bankHoliday: BankHolidayStateEvent) => {
@@ -42,13 +45,33 @@ export default function HomeScreen() {
       const permissionStatus = await RNCalendarEvents.requestPermissions();
 
       if (permissionStatus !== "authorized") {
-        Alert.alert(
-          "Calendar access needed",
-          "Allow calendar access to add events.",
-        );
+        if (hasDeniedCalendarPermission) {
+          Alert.alert(
+            "Calendar access needed",
+            "Allow calendar access in Settings to add events.",
+            [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Open Settings",
+                onPress: () => {
+                  void Linking.openSettings();
+                },
+              },
+            ],
+          );
+        } else {
+          Alert.alert(
+            "Calendar access needed",
+            "Allow calendar access to add events.",
+          );
+        }
+
+        setHasDeniedCalendarPermission(true);
 
         return;
       }
+
+      setHasDeniedCalendarPermission(false);
 
       await RNCalendarEvents.saveEvent(
         bankHoliday.title,

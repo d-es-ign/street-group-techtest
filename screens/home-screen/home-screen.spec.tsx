@@ -1,6 +1,6 @@
 import { fireEvent, waitFor } from "@testing-library/react-native";
 import { router } from "expo-router";
-import { Alert } from "react-native";
+import { Alert, Linking } from "react-native";
 import RNCalendarEvents from "react-native-calendar-events";
 
 import { useBankHolidays } from "@/domains/bank-holidays/hooks/use-bank-holidays";
@@ -110,10 +110,14 @@ const createBankHolidaysResult = (
 
 describe("GIVEN HomeScreen", () => {
   const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(jest.fn());
+  const openSettingsSpy = jest
+    .spyOn(Linking, "openSettings")
+    .mockResolvedValue();
 
   beforeEach(() => {
     deleteBankHoliday.mockReset();
     alertSpy.mockReset();
+    openSettingsSpy.mockClear();
     mockedCalendarEvents.requestPermissions.mockReset();
     mockedCalendarEvents.saveEvent.mockReset();
     mockedUseBankHolidaysStore.mockImplementation((selector) =>
@@ -313,6 +317,59 @@ describe("GIVEN HomeScreen", () => {
       );
       expect(mockedCalendarEvents.saveEvent).not.toHaveBeenCalled();
     });
+  });
+
+  it("SHOULD offer opening settings after calendar permission was already denied", async () => {
+    mockedCalendarEvents.requestPermissions.mockResolvedValue("denied");
+
+    mockedUseBankHolidays.mockReturnValue(
+      createBankHolidaysResult({
+        bankHolidays: [
+          {
+            id: "0",
+            title: "New Year's Day",
+            date: "2026-01-01",
+            notes: "",
+            bunting: true,
+          },
+        ],
+      }),
+    );
+
+    render(<HomeScreen />);
+
+    fireEvent.press(screen.getByText("Save"));
+
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenNthCalledWith(
+        1,
+        "Calendar access needed",
+        "Allow calendar access to add events.",
+      );
+    });
+
+    fireEvent.press(screen.getByText("Save"));
+
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenNthCalledWith(
+        2,
+        "Calendar access needed",
+        "Allow calendar access in Settings to add events.",
+        expect.arrayContaining([
+          expect.objectContaining({ text: "Cancel" }),
+          expect.objectContaining({ text: "Open Settings" }),
+        ]),
+      );
+    });
+
+    const settingsButton = alertSpy.mock.calls[1]?.[2]?.find(
+      (button) => button.text === "Open Settings",
+    );
+
+    settingsButton?.onPress?.();
+
+    expect(openSettingsSpy).toHaveBeenCalledTimes(1);
+    expect(mockedCalendarEvents.saveEvent).not.toHaveBeenCalled();
   });
 
   it("SHOULD show feedback when saving the event fails", async () => {
