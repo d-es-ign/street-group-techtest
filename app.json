@@ -9,7 +9,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.jasper.vanes.streetgrouptechtest"
+      "bundleIdentifier": "com.jasper.vanes.streetgrouptechtest",
+      "infoPlist": {
+        "NSCalendarsUsageDescription": "Allow Street Group Tech Test to add events to your calendar"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -20,7 +23,11 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.jasper.vanes.streetgrouptechtest"
+      "package": "com.jasper.vanes.streetgrouptechtest",
+      "permissions": [
+        "READ_CALENDAR",
+        "WRITE_CALENDAR"
+      ]
     },
     "web": {
       "output": "static",

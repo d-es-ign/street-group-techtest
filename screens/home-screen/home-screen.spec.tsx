@@ -1,9 +1,12 @@
-import { fireEvent } from "@testing-library/react-native";
+import { fireEvent, waitFor } from "@testing-library/react-native";
 import { router } from "expo-router";
+import { Alert } from "react-native";
+import RNCalendarEvents from "react-native-calendar-events";
 
 import { useBankHolidays } from "@/domains/bank-holidays/hooks/use-bank-holidays";
 import { useBankHolidaysStore } from "@/domains/bank-holidays/stores";
 import { render, screen } from "@/test-utils";
+import { createCalendarEventDetails } from "@/utils/date-utils";
 
 import HomeScreen from "./index";
 
@@ -77,8 +80,17 @@ jest.mock("@/domains/bank-holidays/stores", () => ({
   useBankHolidaysStore: jest.fn(),
 }));
 
+jest.mock("react-native-calendar-events", () => ({
+  __esModule: true,
+  default: {
+    requestPermissions: jest.fn(),
+    saveEvent: jest.fn(),
+  },
+}));
+
 const mockedUseBankHolidays = jest.mocked(useBankHolidays);
 const mockedUseBankHolidaysStore = jest.mocked(useBankHolidaysStore);
+const mockedCalendarEvents = jest.mocked(RNCalendarEvents);
 const deleteBankHoliday = jest.fn();
 
 const createBankHolidaysResult = (
@@ -97,8 +109,13 @@ const createBankHolidaysResult = (
 };
 
 describe("GIVEN HomeScreen", () => {
+  const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(jest.fn());
+
   beforeEach(() => {
     deleteBankHoliday.mockReset();
+    alertSpy.mockReset();
+    mockedCalendarEvents.requestPermissions.mockReset();
+    mockedCalendarEvents.saveEvent.mockReset();
     mockedUseBankHolidaysStore.mockImplementation((selector) =>
       selector({
         bankHolidays: [],
@@ -231,6 +248,101 @@ describe("GIVEN HomeScreen", () => {
     fireEvent.press(screen.getByText("Delete"));
 
     expect(deleteBankHoliday).toHaveBeenCalledWith("0");
+  });
+
+  it("SHOULD save a bank holiday to the native calendar when save is pressed", async () => {
+    mockedCalendarEvents.requestPermissions.mockResolvedValue("authorized");
+    mockedCalendarEvents.saveEvent.mockResolvedValue("calendar-event-id");
+
+    mockedUseBankHolidays.mockReturnValue(
+      createBankHolidaysResult({
+        bankHolidays: [
+          {
+            id: "0",
+            title: "New Year's Day",
+            date: "2026-01-01",
+            notes: "",
+            bunting: true,
+          },
+        ],
+      }),
+    );
+
+    render(<HomeScreen />);
+
+    fireEvent.press(screen.getByText("Save"));
+
+    await waitFor(() => {
+      expect(mockedCalendarEvents.requestPermissions).toHaveBeenCalledTimes(1);
+      expect(mockedCalendarEvents.saveEvent).toHaveBeenCalledWith(
+        "New Year's Day",
+        createCalendarEventDetails("2026-01-01"),
+      );
+      expect(alertSpy).toHaveBeenCalledWith(
+        "Event saved",
+        "New Year's Day has been added to your calendar.",
+      );
+    });
+  });
+
+  it("SHOULD show feedback when calendar permission is denied", async () => {
+    mockedCalendarEvents.requestPermissions.mockResolvedValue("denied");
+
+    mockedUseBankHolidays.mockReturnValue(
+      createBankHolidaysResult({
+        bankHolidays: [
+          {
+            id: "0",
+            title: "New Year's Day",
+            date: "2026-01-01",
+            notes: "",
+            bunting: true,
+          },
+        ],
+      }),
+    );
+
+    render(<HomeScreen />);
+
+    fireEvent.press(screen.getByText("Save"));
+
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalledWith(
+        "Calendar access needed",
+        "Allow calendar access to add events.",
+      );
+      expect(mockedCalendarEvents.saveEvent).not.toHaveBeenCalled();
+    });
+  });
+
+  it("SHOULD show feedback when saving the event fails", async () => {
+    mockedCalendarEvents.requestPermissions.mockResolvedValue("authorized");
+    mockedCalendarEvents.saveEvent.mockRejectedValue(new Error("Save failed"));
+
+    mockedUseBankHolidays.mockReturnValue(
+      createBankHolidaysResult({
+        bankHolidays: [
+          {
+            id: "0",
+            title: "New Year's Day",
+            date: "2026-01-01",
+            notes: "",
+            bunting: true,
+          },
+        ],
+      }),
+    );
+
+    render(<HomeScreen />);
+
+    fireEvent.press(screen.getByText("Save"));
+
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalledWith(
+        "Could not save event",
+        "Try again in a moment.",
+      );
+    });
   });
 
   it("SHOULD refetch bank holidays when the list is pulled to refresh", () => {

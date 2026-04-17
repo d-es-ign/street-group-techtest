@@ -1,11 +1,14 @@
 import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
+import { Alert } from "react-native";
+import RNCalendarEvents from "react-native-calendar-events";
 
+import { SwipeableItem } from "@/domains/bank-holidays/components/swipeable-item";
 import { useBankHolidays } from "@/domains/bank-holidays/hooks/use-bank-holidays";
 import { useBankHolidaysStore } from "@/domains/bank-holidays/stores";
 import { BankHolidayStateEvent } from "@/domains/bank-holidays/types";
+import { createCalendarEventDetails } from "@/utils/date-utils";
 
-import { SwipeableItem } from "../../domains/bank-holidays/components/swipeable-item";
 import {
   StyledBody,
   StyledContainer,
@@ -34,8 +37,33 @@ export default function HomeScreen() {
     deleteBankHoliday(bankHoliday.id);
   };
 
-  const handleSave = (bankHoliday: BankHolidayStateEvent) => {
-    // Add to the user's native calendar (e.g., using react-native-calendar-events)
+  const handleSave = async (bankHoliday: BankHolidayStateEvent) => {
+    try {
+      const permissionStatus = await RNCalendarEvents.requestPermissions();
+
+      if (permissionStatus !== "authorized") {
+        Alert.alert(
+          "Calendar access needed",
+          "Allow calendar access to add events.",
+        );
+
+        return;
+      }
+
+      await RNCalendarEvents.saveEvent(
+        bankHoliday.title,
+        createCalendarEventDetails(bankHoliday.date) as Parameters<
+          typeof RNCalendarEvents.saveEvent
+        >[1],
+      );
+
+      Alert.alert(
+        "Event saved",
+        `${bankHoliday.title} has been added to your calendar.`,
+      );
+    } catch {
+      Alert.alert("Could not save event", "Try again in a moment.");
+    }
   };
 
   return (

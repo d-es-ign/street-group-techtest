@@ -17,7 +17,7 @@ export const unstable_settings = {
 export default function RootLayout() {
   return (
     <GestureHandlerRootView>
-      <SafeAreaProvider>
+      <SafeAreaProvider style={{ paddingVertical: 80 }}>
         <QueryProvider>
           <BankHolidaysBootstrap />
           <ThemeProvider theme={appTheme}>
