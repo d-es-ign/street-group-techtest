@@ -5,51 +5,55 @@ import { BankHolidayEvent } from "@/domains/bank-holidays/types";
 
 import {
   StyledBody,
-  StyledCard,
   StyledContainer,
   StyledListContent,
   StyledListItem,
-  StyledListItemMeta,
+  StyledListItemDate,
   StyledListItemTitle,
   StyledTitle,
 } from "./home-screen.styles";
 
 export default function HomeScreen() {
-  const { bankHolidays, isError, isLoading, isRefreshing, refreshBankHolidays } =
-    useBankHolidays();
+  const {
+    bankHolidays,
+    isError,
+    isLoading,
+    isRefreshing,
+    refreshBankHolidays,
+  } = useBankHolidays();
   const shouldShowError = isError && bankHolidays.length === 0;
 
   return (
     <StyledContainer>
-      <StyledCard>
-        <StyledTitle accessibilityRole="header">
-          Street Group Tech Test
-        </StyledTitle>
-        <StyledBody>UK bank holidays from GOV.UK.</StyledBody>
+      <StyledTitle accessibilityRole="header">
+        Street Group Tech Test
+      </StyledTitle>
+      <StyledBody>UK bank holidays from GOV.UK.</StyledBody>
 
-        {isLoading ? <StyledBody>Loading bank holidays...</StyledBody> : null}
-        {shouldShowError ? (
-          <StyledBody>Could not load bank holidays.</StyledBody>
-        ) : null}
+      {isLoading ? <StyledBody>Loading bank holidays...</StyledBody> : null}
+      {shouldShowError ? (
+        <StyledBody>Could not load bank holidays.</StyledBody>
+      ) : null}
 
-        {!isLoading && !shouldShowError ? (
-          <FlashList<BankHolidayEvent>
-            contentContainerStyle={StyledListContent}
-            data={bankHolidays}
-            keyExtractor={(item) => `${item.date}-${item.title}`}
-            onRefresh={refreshBankHolidays}
-            renderItem={({ item }) => {
-              return (
-                <StyledListItem>
-                  <StyledListItemTitle>{item.title}</StyledListItemTitle>
-                  <StyledListItemMeta>{item.date}</StyledListItemMeta>
-                </StyledListItem>
-              );
-            }}
-            refreshing={isRefreshing}
-          />
-        ) : null}
-      </StyledCard>
+      {!isLoading && !shouldShowError ? (
+        <FlashList<BankHolidayEvent>
+          contentContainerStyle={StyledListContent}
+          data={bankHolidays}
+          keyExtractor={(item) => `${item.date}-${item.title}`}
+          onRefresh={refreshBankHolidays}
+          renderItem={({ item }) => {
+            return (
+              <StyledListItem>
+                <StyledListItemTitle>{item.title}</StyledListItemTitle>
+                <StyledListItemDate>{item.date}</StyledListItemDate>
+              </StyledListItem>
+            );
+          }}
+          refreshing={isRefreshing}
+        />
+      ) : null}
+
+      <StyledBody>Pull to refresh.</StyledBody>
     </StyledContainer>
   );
 }

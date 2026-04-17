@@ -2,16 +2,7 @@ import styled from "styled-components/native";
 
 export const StyledContainer = styled.View`
   flex: 1;
-  padding: ${({ theme }) => theme.spacing.large}px;
-  background-color: ${({ theme }) => theme.colors.background};
-`;
-
-export const StyledCard = styled.View`
-  width: 100%;
-  flex: 1;
-  gap: ${({ theme }) => theme.spacing.small}px;
-  padding: ${({ theme }) => theme.spacing.xLarge}px;
-  border-radius: ${({ theme }) => theme.radius.medium}px;
+  padding: ${({ theme }) => theme.spacing.xLarge * 3}px 0;
   background-color: ${({ theme }) => theme.colors.surface};
 `;
 
@@ -30,14 +21,18 @@ export const StyledBody = styled.Text`
 `;
 
 export const StyledListContent = {
-  paddingTop: 24,
+  marginTop: 24,
+  flex: 1,
+  borderTopWidth: 1,
+  borderTopStyle: "solid",
+  borderTopColor: "#00000033",
 };
 
 export const StyledListItem = styled.View`
-  gap: ${({ theme }) => theme.spacing.xSmall}px;
-  padding-vertical: ${({ theme }) => theme.spacing.medium}px;
+  background-color: ${({ theme }) => theme.colors.background};
+  padding: ${({ theme }) => theme.spacing.medium}px;
   border-bottom-width: 1px;
-  border-bottom-color: ${({ theme }) => theme.colors.background};
+  border-bottom-color: ${({ theme }) => theme.colors.textSecondary}33;
 `;
 
 export const StyledListItemTitle = styled.Text`
@@ -46,7 +41,7 @@ export const StyledListItemTitle = styled.Text`
   font-weight: 700;
 `;
 
-export const StyledListItemMeta = styled.Text`
+export const StyledListItemDate = styled.Text`
   color: ${({ theme }) => theme.colors.textSecondary};
   font-size: 14px;
   line-height: 20px;
