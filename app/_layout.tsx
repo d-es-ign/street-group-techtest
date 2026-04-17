@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider } from "styled-components/native";
 
+import { BankHolidaysBootstrap } from "@/domains/bank-holidays/components/bank-holidays-bootstrap";
 import { QueryProvider } from "@/domains/shared/services/client";
 import { appTheme } from "@/theme/theme";
 
@@ -18,6 +19,7 @@ export default function RootLayout() {
     <GestureHandlerRootView>
       <SafeAreaProvider>
         <QueryProvider>
+          <BankHolidaysBootstrap />
           <ThemeProvider theme={appTheme}>
             <Stack screenOptions={{ headerShown: false }} />
             <StatusBar style="dark" />
