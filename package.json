@@ -7,12 +7,16 @@
     "android": "npm run native:sync && expo run:android",
     "ios": "npm run native:sync && expo run:ios",
     "native:sync": "node ./scripts/native-sync.js",
+    "prepare": "husky",
     "web": "expo start --web",
     "test": "jest",
     "test:watch": "jest --watch",
     "tsc:verify": "tsc --noEmit",
     "lint:check": "eslint .",
     "lint:fix": "npm run lint:check -- --fix"
+  },
+  "lint-staged": {
+    "*.{js,jsx,mjs,ts,tsx}": "eslint --fix"
   },
   "dependencies": {
     "@shopify/flash-list": "^2.3.1",
@@ -45,8 +49,10 @@
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-unused-imports": "^4.3.0",
     "globals": "^17.3.0",
+    "husky": "^9.1.7",
     "jest": "^29.7.0",
     "jest-expo": "^54.0.13",
+    "lint-staged": "^16.4.0",
     "react-test-renderer": "19.1.0",
     "typescript": "~5.9.2",
     "typescript-eslint": "^8.58.1"
