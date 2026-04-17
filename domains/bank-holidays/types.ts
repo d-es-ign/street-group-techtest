@@ -5,6 +5,10 @@ export interface BankHolidayEvent {
   bunting: boolean;
 }
 
+export interface BankHolidayStateEvent extends BankHolidayEvent {
+  id: number;
+}
+
 export interface BankHolidayDivision {
   division: string;
   events: BankHolidayEvent[];
