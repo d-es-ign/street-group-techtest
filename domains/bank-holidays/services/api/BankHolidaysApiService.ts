@@ -5,6 +5,14 @@ import {
 
 const BANK_HOLIDAYS_URL = "https://www.gov.uk/bank-holidays.json";
 
+const formatLocalDate = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
 export default class BankHolidaysApiService {
   public async getBankHolidays(): Promise<BankHolidayEvent[]> {
     const response = await fetch(BANK_HOLIDAYS_URL);
@@ -14,10 +22,10 @@ export default class BankHolidaysApiService {
     }
 
     const rawBankHolidays = (await response.json()) as BankHolidaysResponse;
-    const today = new Date().toISOString().slice(0, 10);
+    const today = formatLocalDate(new Date());
     const sixMonthsFromToday = new Date();
     sixMonthsFromToday.setMonth(sixMonthsFromToday.getMonth() + 6);
-    const sixMonthsFromTodayStr = sixMonthsFromToday.toISOString().slice(0, 10);
+    const sixMonthsFromTodayStr = formatLocalDate(sixMonthsFromToday);
 
     const uniqueEvents = new Map<string, BankHolidayEvent>();
 

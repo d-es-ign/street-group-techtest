@@ -54,6 +54,19 @@ describe("GIVEN HomeScreen", () => {
     expect(screen.getByText("Loading bank holidays...")).toBeOnTheScreen();
   });
 
+  it("SHOULD render an error state", () => {
+    mockedUseBankHolidaysQuery.mockReturnValue(
+      createBankHolidaysQueryResult({ isError: true }),
+    );
+
+    render(<HomeScreen />);
+
+    expect(
+      screen.getByRole("header", { name: "Street Group Tech Test" }),
+    ).toBeOnTheScreen();
+    expect(screen.getByText("Could not load bank holidays.")).toBeOnTheScreen();
+  });
+
   it("SHOULD render bank holidays in a list", () => {
     mockedUseBankHolidaysQuery.mockReturnValue(
       createBankHolidaysQueryResult({
