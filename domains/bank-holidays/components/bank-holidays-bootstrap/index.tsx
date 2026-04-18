@@ -6,11 +6,12 @@ import { useBankHolidaysStore } from "@/domains/bank-holidays/stores";
 
 export const BankHolidaysBootstrap = () => {
   const bankHolidays = useBankHolidaysStore((state) => state.bankHolidays);
+  const hasHydrated = useBankHolidaysStore((state) => state.hasHydrated);
   const setBankHolidays = useBankHolidaysStore((state) => state.setBankHolidays);
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (bankHolidays.length > 0) {
+    if (!hasHydrated || bankHolidays.length > 0) {
       return;
     }
 
@@ -28,7 +29,7 @@ export const BankHolidaysBootstrap = () => {
     return () => {
       isMounted = false;
     };
-  }, [bankHolidays.length, queryClient, setBankHolidays]);
+  }, [bankHolidays.length, hasHydrated, queryClient, setBankHolidays]);
 
   return null;
 };
