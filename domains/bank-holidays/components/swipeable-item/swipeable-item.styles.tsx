@@ -1,3 +1,4 @@
+import { Animated } from "react-native";
 import styled from "styled-components/native";
 
 export interface StyledActionButtonProps {
@@ -9,13 +10,32 @@ export const StyledListItem = styled.View`
   padding: ${({ theme }) => theme.spacing.medium}px;
   border-bottom-width: 1px;
   border-bottom-color: ${({ theme }) => theme.colors.textSecondary}33;
+`;
+
+export const StyledListItemInner = styled(Animated.View)`
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  flex: 1;
+`;
+
+export const StyledListItemContentPressable = styled.Pressable`
+  flex: 1;
 `;
 
 export const StyledListItemContent = styled.View`
   flex: 1;
+`;
+
+export const StyledListItemTrailingIcon = styled.View`
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+`;
+
+export const StyledListItemMenuButton = styled.Pressable`
+  align-items: center;
+  justify-content: center;
 `;
 
 export const StyledActionButtons = styled.View`

@@ -20,8 +20,9 @@ export const StyledBody = styled.Text`
 `;
 
 export const StyledListContent = {
-  marginTop: 24,
   flex: 1,
   borderTopWidth: 1,
+  borderBottomWidth: 1,
   borderTopColor: "#00000033",
+  borderBottomColor: "#00000033",
 };

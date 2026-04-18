@@ -2,6 +2,7 @@
   "expo": {
     "name": "street-group-techtest",
     "slug": "street-group-techtest",
+    "scheme": "com.jasper.vanes.streetgrouptechtest",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

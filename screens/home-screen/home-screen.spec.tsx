@@ -123,7 +123,9 @@ describe("GIVEN HomeScreen", () => {
     mockedUseBankHolidaysStore.mockImplementation((selector) =>
       selector({
         bankHolidays: [],
+        hasHydrated: true,
         deleteBankHoliday,
+        setHasHydrated: jest.fn(),
         setBankHolidays: jest.fn(),
         updateBankHoliday: jest.fn(),
       }),
@@ -201,7 +203,7 @@ describe("GIVEN HomeScreen", () => {
     expect(screen.getByText("2026-01-01")).toBeOnTheScreen();
     expect(screen.getByText("Edit")).toBeOnTheScreen();
     expect(screen.getByText("Delete")).toBeOnTheScreen();
-    expect(screen.getByText("Save")).toBeOnTheScreen();
+    expect(screen.getByText("Add")).toBeOnTheScreen();
     expect(screen.getByTestId("edit-icon")).toBeOnTheScreen();
     expect(screen.getByTestId("delete-icon")).toBeOnTheScreen();
     expect(screen.getByTestId("calendar-icon")).toBeOnTheScreen();
@@ -274,7 +276,7 @@ describe("GIVEN HomeScreen", () => {
 
     render(<HomeScreen />);
 
-    fireEvent.press(screen.getByText("Save"));
+    fireEvent.press(screen.getByText("Add"));
 
     await waitFor(() => {
       expect(mockedCalendarEvents.requestPermissions).toHaveBeenCalledTimes(1);
@@ -308,7 +310,7 @@ describe("GIVEN HomeScreen", () => {
 
     render(<HomeScreen />);
 
-    fireEvent.press(screen.getByText("Save"));
+    fireEvent.press(screen.getByText("Add"));
 
     await waitFor(() => {
       expect(alertSpy).toHaveBeenCalledWith(
@@ -338,7 +340,7 @@ describe("GIVEN HomeScreen", () => {
 
     render(<HomeScreen />);
 
-    fireEvent.press(screen.getByText("Save"));
+    fireEvent.press(screen.getByText("Add"));
 
     await waitFor(() => {
       expect(alertSpy).toHaveBeenNthCalledWith(
@@ -348,7 +350,7 @@ describe("GIVEN HomeScreen", () => {
       );
     });
 
-    fireEvent.press(screen.getByText("Save"));
+    fireEvent.press(screen.getByText("Add"));
 
     await waitFor(() => {
       expect(alertSpy).toHaveBeenNthCalledWith(
@@ -392,7 +394,7 @@ describe("GIVEN HomeScreen", () => {
 
     render(<HomeScreen />);
 
-    fireEvent.press(screen.getByText("Save"));
+    fireEvent.press(screen.getByText("Add"));
 
     await waitFor(() => {
       expect(alertSpy).toHaveBeenCalledWith(

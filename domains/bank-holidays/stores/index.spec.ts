@@ -2,7 +2,21 @@ import { act } from "react";
 
 import { BankHolidayEvent } from "@/domains/bank-holidays/types";
 
-import { useBankHolidaysStore } from "./index";
+import { createBankHolidaysStore, useBankHolidaysStore } from "./index";
+
+const createMemoryStorage = () => {
+  const storage = new Map<string, string>();
+
+  return {
+    getItem: jest.fn(async (name: string) => storage.get(name) ?? null),
+    setItem: jest.fn(async (name: string, value: string) => {
+      storage.set(name, value);
+    }),
+    removeItem: jest.fn(async (name: string) => {
+      storage.delete(name);
+    }),
+  };
+};
 
 describe("GIVEN useBankHolidaysStore", () => {
   beforeEach(() => {
@@ -166,6 +180,36 @@ describe("GIVEN useBankHolidaysStore", () => {
         id: "1",
         title: "Early May bank holiday",
         date: "2026-05-04",
+        notes: "",
+        bunting: true,
+      },
+    ]);
+  });
+
+  it("SHOULD rehydrate persisted bank holidays from storage", async () => {
+    const storage = createMemoryStorage();
+    const firstStore = createBankHolidaysStore(storage);
+
+    firstStore.getState().setBankHolidays([
+      {
+        title: "New Year's Day",
+        date: "2026-01-01",
+        notes: "",
+        bunting: true,
+      },
+    ]);
+
+    await Promise.resolve();
+
+    const secondStore = createBankHolidaysStore(storage);
+
+    await secondStore.persist.rehydrate();
+
+    expect(secondStore.getState().bankHolidays).toEqual([
+      {
+        id: "0",
+        title: "New Year's Day",
+        date: "2026-01-01",
         notes: "",
         bunting: true,
       },

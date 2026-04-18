@@ -78,4 +78,49 @@ describe("GIVEN useBankHolidays", () => {
       },
     ]);
   });
+
+  it("SHOULD keep local bank holiday state when cached query data exists", () => {
+    const queryData = [
+      {
+        title: "Fetched title",
+        date: "2026-01-01",
+        notes: "",
+        bunting: true,
+      },
+    ];
+
+    act(() => {
+      useBankHolidaysStore.setState({
+        bankHolidays: [
+          {
+            id: "0",
+            title: "Persisted title",
+            date: "2026-01-02",
+            notes: "Persisted notes",
+            bunting: false,
+          },
+        ],
+      });
+    });
+
+    mockedUseBankHolidaysQuery.mockReturnValue({
+      data: queryData,
+      isError: false,
+      isLoading: false,
+      isRefetching: false,
+      refetch: jest.fn(),
+    } as unknown as ReturnType<typeof useBankHolidaysQuery>);
+
+    renderHook(() => useBankHolidays());
+
+    expect(useBankHolidaysStore.getState().bankHolidays).toEqual([
+      {
+        id: "0",
+        title: "Persisted title",
+        date: "2026-01-02",
+        notes: "Persisted notes",
+        bunting: false,
+      },
+    ]);
+  });
 });
