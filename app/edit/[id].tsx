@@ -17,7 +17,9 @@ export default function EditBankHolidayRoute() {
   if (!bankHoliday) {
     return (
       <StyledContainer>
-        <StyledBody>Bank holiday not found.</StyledBody>
+        <StyledBody accessibilityLiveRegion="assertive" accessibilityRole="alert">
+          Bank holiday not found.
+        </StyledBody>
         <Button title="Go back" onPress={() => router.back()} />
       </StyledContainer>
     );

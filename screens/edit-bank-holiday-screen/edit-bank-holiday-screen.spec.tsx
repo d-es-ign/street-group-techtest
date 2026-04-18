@@ -1,5 +1,6 @@
 import { act, fireEvent } from "@testing-library/react-native";
 import { router } from "expo-router";
+import { AccessibilityInfo } from "react-native";
 
 import { useBankHolidaysStore } from "@/domains/bank-holidays/stores";
 import { BankHolidayStateEvent } from "@/domains/bank-holidays/types";
@@ -60,11 +61,15 @@ jest.mock("@react-native-community/datetimepicker", () => {
 });
 
 describe("GIVEN EditBankHolidayScreen", () => {
+  const announceForAccessibilitySpy = jest
+    .spyOn(AccessibilityInfo, "announceForAccessibility")
+    .mockImplementation(jest.fn());
   const updateBankHoliday = jest.fn();
 
   beforeEach(() => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date(2026, 0, 15));
+    announceForAccessibilitySpy.mockReset();
     updateBankHoliday.mockReset();
 
     jest.mocked(useBankHolidaysStore).mockImplementation((selector) =>
@@ -94,6 +99,7 @@ describe("GIVEN EditBankHolidayScreen", () => {
   it("SHOULD prefill the title and date from the bank holiday", () => {
     render(<EditBankHolidayScreen bankHoliday={bankHoliday} />);
 
+    expect(screen.getByLabelText("Bank holiday title")).toBeOnTheScreen();
     expect(screen.getByDisplayValue("Good Friday")).toBeOnTheScreen();
     expect(screen.getByText("2026-04-03")).toBeOnTheScreen();
   });
@@ -130,7 +136,8 @@ describe("GIVEN EditBankHolidayScreen", () => {
 
     fireEvent.press(screen.getByText("Save"));
 
-    expect(screen.getByText("Title can't be empty.")).toBeOnTheScreen();
+    expect(screen.getByRole("alert")).toHaveTextContent("Title can't be empty.");
+    expect(screen.getByLabelText("Save changes")).toBeDisabled();
     expect(screen.queryByText("Save changes?")).not.toBeOnTheScreen();
   });
 
@@ -210,6 +217,8 @@ describe("GIVEN EditBankHolidayScreen", () => {
     fireEvent.press(screen.getByText("Save"));
 
     expect(screen.getByText("Save changes?")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Cancel save changes")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Confirm save changes")).toBeOnTheScreen();
     expect(updateBankHoliday).not.toHaveBeenCalled();
   });
 
@@ -228,6 +237,9 @@ describe("GIVEN EditBankHolidayScreen", () => {
       notes: "",
       title: "Updated holiday",
     });
+    expect(announceForAccessibilitySpy).toHaveBeenCalledWith(
+      "Updated holiday saved successfully.",
+    );
     expect(jest.mocked(router.back)).toHaveBeenCalledTimes(1);
   });
 

@@ -1,5 +1,5 @@
 import { fireEvent } from "@testing-library/react-native";
-import { Animated } from "react-native";
+import { AccessibilityInfo, Animated } from "react-native";
 
 import { render, screen } from "@/test-utils";
 
@@ -39,6 +39,9 @@ jest.mock("react-native-gesture-handler/ReanimatedSwipeable", () => ({
 }));
 
 describe("GIVEN SwipeableItem", () => {
+  const announceForAccessibilitySpy = jest
+    .spyOn(AccessibilityInfo, "announceForAccessibility")
+    .mockImplementation(jest.fn());
   const bankHoliday = {
     bunting: true,
     date: "2026-01-01",
@@ -48,6 +51,7 @@ describe("GIVEN SwipeableItem", () => {
   };
 
   afterEach(() => {
+    announceForAccessibilitySpy.mockReset();
     jest.restoreAllMocks();
   });
 
@@ -61,7 +65,7 @@ describe("GIVEN SwipeableItem", () => {
       />,
     );
 
-    expect(screen.getByTestId("menu-icon")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Show actions for New Year's Day")).toBeOnTheScreen();
     expect(screen.queryByTestId("chevron-right-icon")).not.toBeOnTheScreen();
   });
 
@@ -77,8 +81,8 @@ describe("GIVEN SwipeableItem", () => {
 
     fireEvent.press(screen.getByTestId("open-swipeable"));
 
-    expect(screen.getByTestId("chevron-right-icon")).toBeOnTheScreen();
-    expect(screen.queryByTestId("menu-icon")).not.toBeOnTheScreen();
+    expect(screen.getByLabelText("Hide actions for New Year's Day")).toBeOnTheScreen();
+    expect(screen.queryByLabelText("Show actions for New Year's Day")).not.toBeOnTheScreen();
   });
 
   it("SHOULD close the actions after tapping an action item", () => {
@@ -97,8 +101,48 @@ describe("GIVEN SwipeableItem", () => {
     fireEvent.press(screen.getByText("Edit"));
 
     expect(onEdit).toHaveBeenCalledWith(bankHoliday);
-    expect(screen.getByTestId("menu-icon")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Show actions for New Year's Day")).toBeOnTheScreen();
     expect(screen.queryByTestId("chevron-right-icon")).not.toBeOnTheScreen();
+  });
+
+  it("SHOULD toggle actions from the menu button without swiping", () => {
+    render(
+      <SwipeableItem
+        bankHoliday={bankHoliday}
+        onDelete={jest.fn()}
+        onEdit={jest.fn()}
+        onSave={jest.fn()}
+      />,
+    );
+
+    fireEvent.press(screen.getByLabelText("Show actions for New Year's Day"));
+    expect(screen.getByLabelText("Hide actions for New Year's Day")).toBeOnTheScreen();
+    expect(announceForAccessibilitySpy).toHaveBeenCalledWith(
+      "New Year's Day actions shown. Add, edit, and delete available.",
+    );
+
+    fireEvent.press(screen.getByLabelText("Hide actions for New Year's Day"));
+    expect(announceForAccessibilitySpy).toHaveBeenLastCalledWith(
+      "New Year's Day actions hidden.",
+    );
+    expect(screen.getByLabelText("Show actions for New Year's Day")).toBeOnTheScreen();
+  });
+
+  it("SHOULD expose accessible labels for each swipe action", () => {
+    render(
+      <SwipeableItem
+        bankHoliday={bankHoliday}
+        onDelete={jest.fn()}
+        onEdit={jest.fn()}
+        onSave={jest.fn()}
+      />,
+    );
+
+    fireEvent.press(screen.getByLabelText("Show actions for New Year's Day"));
+
+    expect(screen.getByLabelText("Add New Year's Day to calendar")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Edit New Year's Day")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Delete New Year's Day")).toBeOnTheScreen();
   });
 
   it("SHOULD animate the content when tapped", () => {
@@ -129,19 +173,7 @@ describe("GIVEN SwipeableItem", () => {
     expect(start).toHaveBeenCalled();
   });
 
-  it("SHOULD animate the content when the menu icon is tapped", () => {
-    const start = jest.fn();
-    const stop = jest.fn();
-    const reset = jest.fn();
-
-    jest
-      .spyOn(Animated, "sequence")
-      .mockReturnValue({
-        reset,
-        start,
-        stop,
-      } as unknown as Animated.CompositeAnimation);
-
+  it("SHOULD toggle the actions when the menu button is tapped", () => {
     render(
       <SwipeableItem
         bankHoliday={bankHoliday}
@@ -153,8 +185,10 @@ describe("GIVEN SwipeableItem", () => {
 
     fireEvent.press(screen.getByTestId("swipeable-item-menu-button"));
 
-    expect(Animated.sequence).toHaveBeenCalled();
-    expect(start).toHaveBeenCalled();
+    expect(announceForAccessibilitySpy).toHaveBeenCalledWith(
+      "New Year's Day actions shown. Add, edit, and delete available.",
+    );
+    expect(screen.getByLabelText("Hide actions for New Year's Day")).toBeOnTheScreen();
   });
 
   it("SHOULD not animate the content when actions are shown", () => {

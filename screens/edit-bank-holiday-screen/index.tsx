@@ -1,7 +1,7 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { router } from "expo-router";
 import { useMemo, useRef, useState } from "react";
-import { Animated, Modal } from "react-native";
+import { AccessibilityInfo, Animated, Modal } from "react-native";
 
 import { useBankHolidaysStore } from "@/domains/bank-holidays/stores";
 import { BankHolidayStateEvent } from "@/domains/bank-holidays/types";
@@ -99,9 +99,10 @@ export const EditBankHolidayScreen = ({
   };
 
   const handleConfirmSave = () => {
+    const trimmedTitle = title.trim();
     const updatedBankHoliday: BankHolidayStateEvent = {
       id,
-      title: title.trim(),
+      title: trimmedTitle,
       date: formatLocalDate(date),
       notes,
       bunting,
@@ -109,11 +110,15 @@ export const EditBankHolidayScreen = ({
 
     setIsSaveConfirmationVisible(false);
     updateBankHoliday(updatedBankHoliday);
+    AccessibilityInfo.announceForAccessibility(
+      `${trimmedTitle} saved successfully.`,
+    );
     handleBack();
   };
 
   const handleSave = () => {
     if (isTitleEmpty) {
+      AccessibilityInfo.announceForAccessibility("Title can't be empty.");
       return;
     }
 
@@ -144,16 +149,18 @@ export const EditBankHolidayScreen = ({
 
   return (
     <StyledScreen>
-      <StyledTitle>Edit bank holiday</StyledTitle>
+      <StyledTitle accessibilityRole="header">Edit bank holiday</StyledTitle>
 
       <StyledFieldLabel>Title (required)</StyledFieldLabel>
       <StyledTextInput
+        accessibilityHint="Enter a title for this bank holiday"
+        accessibilityLabel="Bank holiday title"
         onChangeText={handleTitleChange}
         value={title}
       />
       {isValidationMessageRendered ? (
         <Animated.View style={{ opacity: validationMessageOpacity }}>
-          <StyledValidationMessage>
+          <StyledValidationMessage accessibilityLiveRegion="assertive" accessibilityRole="alert">
             Title can&apos;t be empty.
           </StyledValidationMessage>
         </Animated.View>
@@ -164,6 +171,8 @@ export const EditBankHolidayScreen = ({
       </StyledFieldLabel>
       <StyledDatePickerContainer>
         <DateTimePicker
+          accessibilityHint="Choose a date within the next 6 months"
+          accessibilityLabel="Bank holiday date"
           maximumDate={maximumDate}
           minimumDate={today}
           mode="date"
@@ -177,33 +186,56 @@ export const EditBankHolidayScreen = ({
       </StyledDatePickerContainer>
       <StyledButtonContainer>
         <StyledButton
+          accessibilityHint="Saves your changes after confirmation"
+          accessibilityLabel="Save changes"
+          accessibilityRole="button"
+          accessibilityState={{ disabled: isTitleEmpty }}
           disabled={isTitleEmpty}
           variant="success"
           onPress={handleSave}
         >
           <StyledButtonLabel>Save</StyledButtonLabel>
         </StyledButton>
-        <StyledButton variant="accent" onPress={handleBack}>
+        <StyledButton
+          accessibilityHint="Returns to the previous screen without saving"
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+          variant="accent"
+          onPress={handleBack}
+        >
           <StyledButtonLabel>Back</StyledButtonLabel>
         </StyledButton>
       </StyledButtonContainer>
 
       <Modal
         animationType="fade"
+        onRequestClose={handleCancelSave}
         transparent
         visible={isSaveConfirmationVisible}
       >
         <StyledModalBackdrop>
-          <StyledModalCard>
-            <StyledTitle>Save changes?</StyledTitle>
+          <StyledModalCard accessibilityRole="alert" accessibilityViewIsModal>
+            <StyledTitle accessibilityRole="header">Save changes?</StyledTitle>
             <StyledModalBody>
               Save your changes to this bank holiday before going back.
             </StyledModalBody>
             <StyledModalButtonContainer>
-              <StyledButton variant="accent" onPress={handleCancelSave}>
+              <StyledButton
+                accessibilityHint="Closes the confirmation dialog"
+                accessibilityLabel="Cancel save changes"
+                accessibilityRole="button"
+                variant="accent"
+                onPress={handleCancelSave}
+              >
                 <StyledButtonLabel>Cancel</StyledButtonLabel>
               </StyledButton>
-              <StyledButton variant="success" onPress={handleConfirmSave}>
+              <StyledButton
+                accessibilityHint="Confirms and saves your changes"
+                accessibilityLabel="Confirm save changes"
+                accessibilityRole="button"
+                variant="success"
+                onPress={handleConfirmSave}
+              >
                 <StyledButtonLabel>Confirm</StyledButtonLabel>
               </StyledButton>
             </StyledModalButtonContainer>
