@@ -1,6 +1,7 @@
 import { fireEvent, waitFor } from "@testing-library/react-native";
 import { router } from "expo-router";
-import { Alert, Linking } from "react-native";
+import { type AccessibilityRole } from "react-native";
+import { AccessibilityInfo, Alert, Linking } from "react-native";
 import RNCalendarEvents from "react-native-calendar-events";
 
 import { useBankHolidays } from "@/domains/bank-holidays/hooks/use-bank-holidays";
@@ -12,24 +13,28 @@ import HomeScreen from "./index";
 
 jest.mock("@shopify/flash-list", () => ({
   FlashList: ({
+    accessibilityLabel,
+    accessibilityRole,
     data,
     onRefresh,
     renderItem,
     refreshing,
   }: {
+    accessibilityLabel?: string;
+    accessibilityRole?: AccessibilityRole;
     data: unknown[];
     onRefresh?: () => void;
     renderItem: ({ item }: { item: unknown }) => React.JSX.Element;
     refreshing?: boolean;
   }) => {
     const React = jest.requireActual("react") as typeof import("react");
-    const { Pressable, Text } = jest.requireActual(
+    const { Pressable, Text, View } = jest.requireActual(
       "react-native",
     ) as typeof import("react-native");
 
     return React.createElement(
-      React.Fragment,
-      null,
+      View,
+      { accessibilityLabel, accessibilityRole },
       React.createElement(
         Pressable,
         { testID: "refresh-list", onPress: onRefresh },
@@ -110,6 +115,9 @@ const createBankHolidaysResult = (
 
 describe("GIVEN HomeScreen", () => {
   const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(jest.fn());
+  const announceForAccessibilitySpy = jest
+    .spyOn(AccessibilityInfo, "announceForAccessibility")
+    .mockImplementation(jest.fn());
   const openSettingsSpy = jest
     .spyOn(Linking, "openSettings")
     .mockResolvedValue();
@@ -117,6 +125,7 @@ describe("GIVEN HomeScreen", () => {
   beforeEach(() => {
     deleteBankHoliday.mockReset();
     alertSpy.mockReset();
+    announceForAccessibilitySpy.mockReset();
     openSettingsSpy.mockClear();
     mockedCalendarEvents.requestPermissions.mockReset();
     mockedCalendarEvents.saveEvent.mockReset();
@@ -142,7 +151,7 @@ describe("GIVEN HomeScreen", () => {
     expect(
       screen.getByRole("header", { name: "Street Group Tech Test" }),
     ).toBeOnTheScreen();
-    expect(screen.getByText("Loading bank holidays...")).toBeOnTheScreen();
+    expect(screen.getByRole("alert")).toHaveTextContent("Loading bank holidays...");
   });
 
   it("SHOULD render an error state", () => {
@@ -155,7 +164,7 @@ describe("GIVEN HomeScreen", () => {
     expect(
       screen.getByRole("header", { name: "Street Group Tech Test" }),
     ).toBeOnTheScreen();
-    expect(screen.getByText("Could not load bank holidays.")).toBeOnTheScreen();
+    expect(screen.getByRole("alert")).toHaveTextContent("Could not load bank holidays.");
   });
 
   it("SHOULD keep rendering bank holidays when refresh fails", () => {
@@ -201,13 +210,14 @@ describe("GIVEN HomeScreen", () => {
 
     expect(screen.getByText("New Year's Day")).toBeOnTheScreen();
     expect(screen.getByText("2026-01-01")).toBeOnTheScreen();
-    expect(screen.getByText("Edit")).toBeOnTheScreen();
-    expect(screen.getByText("Delete")).toBeOnTheScreen();
-    expect(screen.getByText("Add")).toBeOnTheScreen();
-    expect(screen.getByTestId("edit-icon")).toBeOnTheScreen();
-    expect(screen.getByTestId("delete-icon")).toBeOnTheScreen();
-    expect(screen.getByTestId("calendar-icon")).toBeOnTheScreen();
-    expect(screen.getByTestId("menu-icon")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Bank holidays, 1 items")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Show actions for New Year's Day")).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByLabelText("Show actions for New Year's Day"));
+
+    expect(screen.getByLabelText("Edit New Year's Day")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Delete New Year's Day")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Add New Year's Day to calendar")).toBeOnTheScreen();
   });
 
   it("SHOULD trigger swipe actions", () => {
@@ -229,7 +239,8 @@ describe("GIVEN HomeScreen", () => {
 
     render(<HomeScreen />);
 
-    fireEvent.press(screen.getByText("Edit"));
+    fireEvent.press(screen.getByLabelText("Show actions for New Year's Day"));
+    fireEvent.press(screen.getByLabelText("Edit New Year's Day"));
 
     expect(push).toHaveBeenCalledWith("/edit/0");
   });
@@ -251,9 +262,13 @@ describe("GIVEN HomeScreen", () => {
 
     render(<HomeScreen />);
 
-    fireEvent.press(screen.getByText("Delete"));
+    fireEvent.press(screen.getByLabelText("Show actions for New Year's Day"));
+    fireEvent.press(screen.getByLabelText("Delete New Year's Day"));
 
     expect(deleteBankHoliday).toHaveBeenCalledWith("0");
+    expect(announceForAccessibilitySpy).toHaveBeenCalledWith(
+      "New Year's Day deleted from the list.",
+    );
   });
 
   it("SHOULD save a bank holiday to the native calendar when save is pressed", async () => {
@@ -276,13 +291,17 @@ describe("GIVEN HomeScreen", () => {
 
     render(<HomeScreen />);
 
-    fireEvent.press(screen.getByText("Add"));
+    fireEvent.press(screen.getByLabelText("Show actions for New Year's Day"));
+    fireEvent.press(screen.getByLabelText("Add New Year's Day to calendar"));
 
     await waitFor(() => {
       expect(mockedCalendarEvents.requestPermissions).toHaveBeenCalledTimes(1);
       expect(mockedCalendarEvents.saveEvent).toHaveBeenCalledWith(
         "New Year's Day",
         createCalendarEventDetails("2026-01-01"),
+      );
+      expect(announceForAccessibilitySpy).toHaveBeenCalledWith(
+        "New Year's Day has been added to your calendar.",
       );
       expect(alertSpy).toHaveBeenCalledWith(
         "Event saved",
@@ -310,12 +329,16 @@ describe("GIVEN HomeScreen", () => {
 
     render(<HomeScreen />);
 
-    fireEvent.press(screen.getByText("Add"));
+    fireEvent.press(screen.getByLabelText("Show actions for New Year's Day"));
+    fireEvent.press(screen.getByLabelText("Add New Year's Day to calendar"));
 
     await waitFor(() => {
       expect(alertSpy).toHaveBeenCalledWith(
         "Calendar access needed",
         "Allow calendar access to add events.",
+      );
+      expect(announceForAccessibilitySpy).toHaveBeenCalledWith(
+        "Calendar access needed. Allow calendar access to add events.",
       );
       expect(mockedCalendarEvents.saveEvent).not.toHaveBeenCalled();
     });
@@ -340,7 +363,8 @@ describe("GIVEN HomeScreen", () => {
 
     render(<HomeScreen />);
 
-    fireEvent.press(screen.getByText("Add"));
+    fireEvent.press(screen.getByLabelText("Show actions for New Year's Day"));
+    fireEvent.press(screen.getByLabelText("Add New Year's Day to calendar"));
 
     await waitFor(() => {
       expect(alertSpy).toHaveBeenNthCalledWith(
@@ -350,7 +374,8 @@ describe("GIVEN HomeScreen", () => {
       );
     });
 
-    fireEvent.press(screen.getByText("Add"));
+    fireEvent.press(screen.getByLabelText("Show actions for New Year's Day"));
+    fireEvent.press(screen.getByLabelText("Add New Year's Day to calendar"));
 
     await waitFor(() => {
       expect(alertSpy).toHaveBeenNthCalledWith(
@@ -361,6 +386,9 @@ describe("GIVEN HomeScreen", () => {
           expect.objectContaining({ text: "Cancel" }),
           expect.objectContaining({ text: "Open Settings" }),
         ]),
+      );
+      expect(announceForAccessibilitySpy).toHaveBeenLastCalledWith(
+        "Calendar access needed. Allow calendar access in Settings to add events.",
       );
     });
 
@@ -394,9 +422,13 @@ describe("GIVEN HomeScreen", () => {
 
     render(<HomeScreen />);
 
-    fireEvent.press(screen.getByText("Add"));
+    fireEvent.press(screen.getByLabelText("Show actions for New Year's Day"));
+    fireEvent.press(screen.getByLabelText("Add New Year's Day to calendar"));
 
     await waitFor(() => {
+      expect(announceForAccessibilitySpy).toHaveBeenCalledWith(
+        "Could not save event. Try again in a moment.",
+      );
       expect(alertSpy).toHaveBeenCalledWith(
         "Could not save event",
         "Try again in a moment.",

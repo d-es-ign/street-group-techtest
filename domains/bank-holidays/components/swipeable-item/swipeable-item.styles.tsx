@@ -21,6 +21,8 @@ export const StyledListItemInner = styled(Animated.View)`
 
 export const StyledListItemContentPressable = styled.Pressable`
   flex: 1;
+  min-height: 44px;
+  justify-content: center;
 `;
 
 export const StyledListItemContent = styled.View`
@@ -36,6 +38,9 @@ export const StyledListItemTrailingIcon = styled.View`
 export const StyledListItemMenuButton = styled.Pressable`
   align-items: center;
   justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: ${({ theme }) => theme.spacing.xSmall}px;
 `;
 
 export const StyledActionButtons = styled.View`

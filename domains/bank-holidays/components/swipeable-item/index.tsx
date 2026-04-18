@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Animated, Easing } from "react-native";
+import { AccessibilityInfo, Animated, Easing } from "react-native";
 import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { SvgProps } from "react-native-svg";
 
@@ -73,6 +73,7 @@ export const SwipeableItem = ({
   onDelete,
   onSave,
 }: SwipeableItemProps) => {
+  const { date, title } = bankHoliday;
   const [isShowingActions, setIsShowingActions] = useState(false);
   const swipeableRef = useRef<ComponentRef<typeof Swipeable>>(null);
   const contentTranslateX = useMemo(() => new Animated.Value(0), []);
@@ -86,6 +87,22 @@ export const SwipeableItem = ({
     swipeableRef.current?.close?.();
     setIsShowingActions(false);
     action(bankHoliday);
+  };
+
+  const toggleActions = () => {
+    if (isShowingActions) {
+      swipeableRef.current?.close?.();
+      setIsShowingActions(false);
+      AccessibilityInfo.announceForAccessibility(`${title} actions hidden.`);
+
+      return;
+    }
+
+    swipeableRef.current?.openRight?.();
+    setIsShowingActions(true);
+    AccessibilityInfo.announceForAccessibility(
+      `${title} actions shown. Add, edit, and delete available.`,
+    );
   };
 
   const triggerContentHint = () => {
@@ -128,26 +145,43 @@ export const SwipeableItem = ({
       onSwipeableOpen={() => setIsShowingActions(true)}
       renderRightActions={() => {
         return (
-          <StyledActionButtons>
+          <StyledActionButtons
+            accessibilityElementsHidden={!isShowingActions}
+            importantForAccessibility={
+              isShowingActions ? "yes" : "no-hide-descendants"
+            }
+          >
             <StyledActionButton
+              accessibilityHint={`Adds ${title} to your calendar`}
+              accessibilityLabel={`Add ${title} to calendar`}
+              accessibilityRole="button"
               variant="success"
               onPress={() => handleActionPress(onSave)}
             >
               <StyledActionContent>
                 <CalendarSvg
+                  accessibilityElementsHidden
                   fill="white"
                   height={20}
+                  importantForAccessibility="no"
                   testID="calendar-icon"
                   width={20}
                 />
                 <StyledActionButtonLabel>Add</StyledActionButtonLabel>
               </StyledActionContent>
             </StyledActionButton>
-            <StyledActionButton onPress={() => handleActionPress(onEdit)}>
+            <StyledActionButton
+              accessibilityHint={`Opens the edit screen for ${title}`}
+              accessibilityLabel={`Edit ${title}`}
+              accessibilityRole="button"
+              onPress={() => handleActionPress(onEdit)}
+            >
               <StyledActionContent>
                 <EditSvg
+                  accessibilityElementsHidden
                   fill="white"
                   height={20}
+                  importantForAccessibility="no"
                   testID="edit-icon"
                   width={20}
                 />
@@ -155,13 +189,18 @@ export const SwipeableItem = ({
               </StyledActionContent>
             </StyledActionButton>
             <StyledActionButton
+              accessibilityHint={`Deletes ${title} from the list`}
+              accessibilityLabel={`Delete ${title}`}
+              accessibilityRole="button"
               variant="error"
               onPress={() => handleActionPress(onDelete)}
             >
               <StyledActionContent>
                 <DeleteSvg
+                  accessibilityElementsHidden
                   fill="white"
                   height={20}
+                  importantForAccessibility="no"
                   testID="delete-icon"
                   width={20}
                 />
@@ -172,7 +211,7 @@ export const SwipeableItem = ({
         );
       }}
     >
-      <StyledListItem>
+      <StyledListItem accessibilityRole={"listitem" as never}>
         <StyledListItemInner
           style={{ transform: [{ translateX: contentTranslateX }] }}
         >
@@ -181,31 +220,46 @@ export const SwipeableItem = ({
             testID="swipeable-item-content"
           >
             <StyledListItemContent>
-              <StyledListItemTitle>{bankHoliday.title}</StyledListItemTitle>
-              <StyledListItemDate>{bankHoliday.date}</StyledListItemDate>
+              <StyledListItemTitle>{title}</StyledListItemTitle>
+              <StyledListItemDate>{date}</StyledListItemDate>
             </StyledListItemContent>
           </StyledListItemContentPressable>
           <StyledListItemTrailingIcon>
-            {isShowingActions ? (
-              <ChevronRightSvg
-                fill="black"
-                height={24}
-                testID="chevron-right-icon"
-                width={24}
-              />
-            ) : (
-              <StyledListItemMenuButton
-                onPress={triggerContentHint}
-                testID="swipeable-item-menu-button"
-              >
-                <MenuSvg
+            <StyledListItemMenuButton
+              accessibilityHint={
+                isShowingActions
+                  ? "Hides the add, edit, and delete actions"
+                  : "Shows the add, edit, and delete actions"
+              }
+              accessibilityLabel={
+                isShowingActions
+                  ? `Hide actions for ${title}`
+                  : `Show actions for ${title}`
+              }
+              accessibilityRole="button"
+              onPress={toggleActions}
+              testID="swipeable-item-menu-button"
+            >
+              {isShowingActions ? (
+                <ChevronRightSvg
+                  accessibilityElementsHidden
                   fill="black"
                   height={24}
+                  importantForAccessibility="no"
+                  testID="chevron-right-icon"
+                  width={24}
+                />
+              ) : (
+                <MenuSvg
+                  accessibilityElementsHidden
+                  fill="black"
+                  height={24}
+                  importantForAccessibility="no"
                   testID="menu-icon"
                   width={24}
                 />
-              </StyledListItemMenuButton>
-            )}
+              )}
+            </StyledListItemMenuButton>
           </StyledListItemTrailingIcon>
         </StyledListItemInner>
       </StyledListItem>
