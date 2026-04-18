@@ -1,4 +1,12 @@
-import { ComponentRef, ComponentType, createElement, useRef, useState } from "react";
+import {
+  ComponentRef,
+  ComponentType,
+  createElement,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { Animated, Easing } from "react-native";
 import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { SvgProps } from "react-native-svg";
 
@@ -16,8 +24,12 @@ import {
   StyledActionContent,
   StyledListItem,
   StyledListItemContent,
+  StyledListItemContentPressable,
   StyledListItemDate,
+  StyledListItemInner,
+  StyledListItemMenuButton,
   StyledListItemTitle,
+  StyledListItemTrailingIcon,
 } from "./swipeable-item.styles";
 
 const SvgMockFallback = (props: SvgProps) => {
@@ -63,11 +75,50 @@ export const SwipeableItem = ({
 }: SwipeableItemProps) => {
   const [isShowingActions, setIsShowingActions] = useState(false);
   const swipeableRef = useRef<ComponentRef<typeof Swipeable>>(null);
+  const contentTranslateX = useMemo(() => new Animated.Value(0), []);
+  const contentHintAnimationRef = useRef<Animated.CompositeAnimation | null>(
+    null,
+  );
 
-  const handleActionPress = (action: (bankHoliday: BankHolidayStateEvent) => void) => {
+  const handleActionPress = (
+    action: (bankHoliday: BankHolidayStateEvent) => void,
+  ) => {
     swipeableRef.current?.close?.();
     setIsShowingActions(false);
     action(bankHoliday);
+  };
+
+  const triggerContentHint = () => {
+    if (isShowingActions) {
+      return;
+    }
+
+    contentHintAnimationRef.current?.stop();
+    contentTranslateX.setValue(0);
+
+    const contentHintAnimation = Animated.sequence([
+      Animated.timing(contentTranslateX, {
+        duration: 90,
+        easing: Easing.out(Easing.quad),
+        toValue: -8,
+        useNativeDriver: true,
+      }),
+      Animated.timing(contentTranslateX, {
+        duration: 120,
+        easing: Easing.inOut(Easing.quad),
+        toValue: 0,
+        useNativeDriver: true,
+      }),
+    ]);
+
+    contentHintAnimationRef.current = contentHintAnimation;
+    contentHintAnimation.start(({ finished }) => {
+      if (!finished || contentHintAnimationRef.current !== contentHintAnimation) {
+        return;
+      }
+
+      contentHintAnimationRef.current = null;
+    });
   };
 
   return (
@@ -89,7 +140,7 @@ export const SwipeableItem = ({
                   testID="calendar-icon"
                   width={20}
                 />
-                <StyledActionButtonLabel>Save</StyledActionButtonLabel>
+                <StyledActionButtonLabel>Add</StyledActionButtonLabel>
               </StyledActionContent>
             </StyledActionButton>
             <StyledActionButton onPress={() => handleActionPress(onEdit)}>
@@ -122,20 +173,41 @@ export const SwipeableItem = ({
       }}
     >
       <StyledListItem>
-        <StyledListItemContent>
-          <StyledListItemTitle>{bankHoliday.title}</StyledListItemTitle>
-          <StyledListItemDate>{bankHoliday.date}</StyledListItemDate>
-        </StyledListItemContent>
-        {isShowingActions ? (
-          <ChevronRightSvg
-            fill="black"
-            height={24}
-            testID="chevron-right-icon"
-            width={24}
-          />
-        ) : (
-          <MenuSvg fill="black" height={24} testID="menu-icon" width={24} />
-        )}
+        <StyledListItemInner
+          style={{ transform: [{ translateX: contentTranslateX }] }}
+        >
+          <StyledListItemContentPressable
+            onPress={triggerContentHint}
+            testID="swipeable-item-content"
+          >
+            <StyledListItemContent>
+              <StyledListItemTitle>{bankHoliday.title}</StyledListItemTitle>
+              <StyledListItemDate>{bankHoliday.date}</StyledListItemDate>
+            </StyledListItemContent>
+          </StyledListItemContentPressable>
+          <StyledListItemTrailingIcon>
+            {isShowingActions ? (
+              <ChevronRightSvg
+                fill="black"
+                height={24}
+                testID="chevron-right-icon"
+                width={24}
+              />
+            ) : (
+              <StyledListItemMenuButton
+                onPress={triggerContentHint}
+                testID="swipeable-item-menu-button"
+              >
+                <MenuSvg
+                  fill="black"
+                  height={24}
+                  testID="menu-icon"
+                  width={24}
+                />
+              </StyledListItemMenuButton>
+            )}
+          </StyledListItemTrailingIcon>
+        </StyledListItemInner>
       </StyledListItem>
     </Swipeable>
   );
