@@ -71,7 +71,9 @@ describe("GIVEN EditBankHolidayScreen", () => {
       selector({
         bankHolidays: [],
         deleteBankHoliday: jest.fn(),
+        hasHydrated: true,
         setBankHolidays: jest.fn(),
+        setHasHydrated: jest.fn(),
         updateBankHoliday,
       }),
     );
@@ -116,13 +118,12 @@ describe("GIVEN EditBankHolidayScreen", () => {
     expect(screen.getByText("2026-03-20")).toBeOnTheScreen();
   });
 
-  it("SHOULD disable save and show a validation message when title is empty on blur", () => {
+  it("SHOULD disable save and show a validation message when title is empty", () => {
     render(<EditBankHolidayScreen bankHoliday={bankHoliday} />);
 
     const titleInput = screen.getByDisplayValue("Good Friday");
 
     fireEvent.changeText(titleInput, "");
-    fireEvent(titleInput, "blur");
     act(() => {
       jest.runAllTimers();
     });
@@ -133,13 +134,12 @@ describe("GIVEN EditBankHolidayScreen", () => {
     expect(screen.queryByText("Save changes?")).not.toBeOnTheScreen();
   });
 
-  it("SHOULD hide the validation message again on focus", () => {
+  it("SHOULD keep the validation message visible while the title is empty", () => {
     render(<EditBankHolidayScreen bankHoliday={bankHoliday} />);
 
     const titleInput = screen.getByDisplayValue("Good Friday");
 
     fireEvent.changeText(titleInput, "");
-    fireEvent(titleInput, "blur");
     act(() => {
       jest.runAllTimers();
     });
@@ -150,7 +150,58 @@ describe("GIVEN EditBankHolidayScreen", () => {
       jest.runAllTimers();
     });
 
+    expect(screen.getByText("Title can't be empty.")).toBeOnTheScreen();
+  });
+
+  it("SHOULD show the validation message when tapping the date picker with an empty title", () => {
+    render(<EditBankHolidayScreen bankHoliday={bankHoliday} />);
+
+    fireEvent.changeText(screen.getByDisplayValue("Good Friday"), "");
+    fireEvent.press(screen.getByTestId("bank-holiday-date-input"));
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    expect(screen.getByText("Title can't be empty.")).toBeOnTheScreen();
+  });
+
+  it("SHOULD hide the validation message when the title becomes valid", () => {
+    render(<EditBankHolidayScreen bankHoliday={bankHoliday} />);
+
+    const titleInput = screen.getByDisplayValue("Good Friday");
+
+    fireEvent.changeText(titleInput, "");
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    expect(screen.getByText("Title can't be empty.")).toBeOnTheScreen();
+
+    fireEvent.changeText(titleInput, "Updated holiday");
+    act(() => {
+      jest.runAllTimers();
+    });
+
     expect(screen.queryByText("Title can't be empty.")).not.toBeOnTheScreen();
+  });
+
+  it("SHOULD keep the validation message visible after rapid empty text toggles", () => {
+    render(<EditBankHolidayScreen bankHoliday={bankHoliday} />);
+
+    const titleInput = screen.getByDisplayValue("Good Friday");
+
+    fireEvent.changeText(titleInput, "");
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    fireEvent.changeText(titleInput, "Updated holiday");
+    fireEvent.changeText(titleInput, "");
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    expect(screen.getByText("Title can't be empty.")).toBeOnTheScreen();
   });
 
   it("SHOULD show a confirmation modal before saving changes", () => {

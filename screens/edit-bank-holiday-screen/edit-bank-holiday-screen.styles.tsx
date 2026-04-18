@@ -61,6 +61,11 @@ export const StyledDateLabel = styled.Text`
   font-size: 14px;
 `;
 
+export const StyledDatePickerContainer = styled.View`
+  align-self: flex-start;
+  margin-left: -14px;
+`;
+
 export const StyledButtonContainer = styled.View`
   flex-direction: row;
   gap: ${({ theme }) => theme.spacing.medium}px;

@@ -1,6 +1,6 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Animated, Modal } from "react-native";
 
 import { useBankHolidaysStore } from "@/domains/bank-holidays/stores";
@@ -10,6 +10,7 @@ import {
   StyledButton,
   StyledButtonContainer,
   StyledButtonLabel,
+  StyledDatePickerContainer,
   StyledFieldLabel,
   StyledModalBackdrop,
   StyledModalBody,
@@ -62,13 +63,18 @@ export const EditBankHolidayScreen = ({
   const [date, setDate] = useState(() => createDateFromValue(bankHoliday.date));
   const [isSaveConfirmationVisible, setIsSaveConfirmationVisible] =
     useState(false);
-  const [isValidationMessageVisible, setIsValidationMessageVisible] =
-    useState(false);
-  const [validationMessageOpacity] = useState(() => new Animated.Value(0));
   const isTitleEmpty = title.trim().length === 0;
+  const [isValidationMessageRendered, setIsValidationMessageRendered] =
+    useState(isTitleEmpty);
+  const [validationMessageOpacity] = useState(
+    () => new Animated.Value(isTitleEmpty ? 1 : 0),
+  );
+  const isNextValidationMessageVisibleRef = useRef(isTitleEmpty);
 
-  const showValidationMessage = () => {
-    setIsValidationMessageVisible(true);
+  const fadeInValidationMessage = () => {
+    isNextValidationMessageVisibleRef.current = true;
+    setIsValidationMessageRendered(true);
+    validationMessageOpacity.stopAnimation();
 
     Animated.timing(validationMessageOpacity, {
       duration: 200,
@@ -77,13 +83,18 @@ export const EditBankHolidayScreen = ({
     }).start();
   };
 
-  const hideValidationMessage = () => {
+  const fadeOutValidationMessage = () => {
+    isNextValidationMessageVisibleRef.current = false;
+    validationMessageOpacity.stopAnimation();
+
     Animated.timing(validationMessageOpacity, {
       duration: 200,
       toValue: 0,
       useNativeDriver: true,
     }).start(() => {
-      setIsValidationMessageVisible(false);
+      if (!isNextValidationMessageVisibleRef.current) {
+        setIsValidationMessageRendered(false);
+      }
     });
   };
 
@@ -103,8 +114,6 @@ export const EditBankHolidayScreen = ({
 
   const handleSave = () => {
     if (isTitleEmpty) {
-      showValidationMessage();
-
       return;
     }
 
@@ -119,49 +128,59 @@ export const EditBankHolidayScreen = ({
     router.back();
   };
 
-  const handleTitleFocus = () => {
-    if (isValidationMessageVisible) {
-      hideValidationMessage();
-    }
-  };
+  const handleTitleChange = (value: string) => {
+    const isNextTitleEmpty = value.trim().length === 0;
 
-  const handleTitleBlur = () => {
-    if (isTitleEmpty) {
-      showValidationMessage();
+    if (isNextTitleEmpty) {
+      fadeInValidationMessage();
     }
+
+    if (!isNextTitleEmpty && isValidationMessageRendered) {
+      fadeOutValidationMessage();
+    }
+
+    setTitle(value);
   };
 
   return (
     <StyledScreen>
       <StyledTitle>Edit bank holiday</StyledTitle>
 
-      <StyledFieldLabel>Title</StyledFieldLabel>
+      <StyledFieldLabel>Title (required)</StyledFieldLabel>
       <StyledTextInput
-        onBlur={handleTitleBlur}
-        onChangeText={setTitle}
-        onFocus={handleTitleFocus}
+        onChangeText={handleTitleChange}
         value={title}
       />
-      {isValidationMessageVisible ? (
+      {isValidationMessageRendered ? (
         <Animated.View style={{ opacity: validationMessageOpacity }}>
-          <StyledValidationMessage>Title can&apos;t be empty.</StyledValidationMessage>
+          <StyledValidationMessage>
+            Title can&apos;t be empty.
+          </StyledValidationMessage>
         </Animated.View>
       ) : null}
 
-      <StyledFieldLabel>Date</StyledFieldLabel>
-      <DateTimePicker
-        maximumDate={maximumDate}
-        minimumDate={today}
-        mode="date"
-        onChange={(_event, selectedDate) => {
-          if (selectedDate) {
-            setDate(selectedDate);
-          }
-        }}
-        value={date}
-      />
+      <StyledFieldLabel>
+        Date (must be within the next 6 months)
+      </StyledFieldLabel>
+      <StyledDatePickerContainer>
+        <DateTimePicker
+          maximumDate={maximumDate}
+          minimumDate={today}
+          mode="date"
+          onChange={(_event, selectedDate) => {
+            if (selectedDate) {
+              setDate(selectedDate);
+            }
+          }}
+          value={date}
+        />
+      </StyledDatePickerContainer>
       <StyledButtonContainer>
-        <StyledButton disabled={isTitleEmpty} variant="success" onPress={handleSave}>
+        <StyledButton
+          disabled={isTitleEmpty}
+          variant="success"
+          onPress={handleSave}
+        >
           <StyledButtonLabel>Save</StyledButtonLabel>
         </StyledButton>
         <StyledButton variant="accent" onPress={handleBack}>
