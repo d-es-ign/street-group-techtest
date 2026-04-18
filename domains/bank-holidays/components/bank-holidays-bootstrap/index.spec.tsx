@@ -13,7 +13,7 @@ describe("GIVEN BankHolidaysBootstrap", () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date("2026-01-15T00:00:00.000Z"));
     act(() => {
-      useBankHolidaysStore.setState({ bankHolidays: [] });
+      useBankHolidaysStore.setState({ bankHolidays: [], hasHydrated: true });
     });
   });
 
@@ -22,7 +22,7 @@ describe("GIVEN BankHolidaysBootstrap", () => {
     jest.resetAllMocks();
     jest.useRealTimers();
     act(() => {
-      useBankHolidaysStore.setState({ bankHolidays: [] });
+      useBankHolidaysStore.setState({ bankHolidays: [], hasHydrated: true });
     });
   });
 
