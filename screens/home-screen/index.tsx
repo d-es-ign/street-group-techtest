@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Alert, Linking } from "react-native";
 import RNCalendarEvents from "react-native-calendar-events";
+import { useTheme } from "styled-components/native";
 
 import { SwipeableItem } from "@/domains/bank-holidays/components/swipeable-item";
 import { useBankHolidays } from "@/domains/bank-holidays/hooks/use-bank-holidays";
@@ -18,6 +19,7 @@ import {
 } from "./home-screen.styles";
 
 export default function HomeScreen() {
+  const theme = useTheme();
   const {
     bankHolidays,
     isError,
@@ -94,7 +96,7 @@ export default function HomeScreen() {
       <StyledTitle accessibilityRole="header">
         Street Group Tech Test
       </StyledTitle>
-      <StyledBody>UK bank holidays from GOV.UK.</StyledBody>
+      <StyledBody>Jasper van Es</StyledBody>
 
       {isLoading ? <StyledBody>Loading bank holidays...</StyledBody> : null}
       {shouldShowError ? (
@@ -107,6 +109,11 @@ export default function HomeScreen() {
           data={bankHolidays}
           keyExtractor={(item) => `${item.date}-${item.title}`}
           onRefresh={refreshBankHolidays}
+          style={{
+            marginTop: 24,
+            marginBottom: 24,
+            backgroundColor: theme.colors.background,
+          }}
           renderItem={({ item }) => {
             return (
               <SwipeableItem
@@ -121,7 +128,7 @@ export default function HomeScreen() {
         />
       ) : null}
 
-      <StyledBody>Pull to refresh.</StyledBody>
+      <StyledBody>Pull to refresh</StyledBody>
     </StyledContainer>
   );
 }
